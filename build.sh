@@ -28,8 +28,11 @@ else
     ./node_modules/webpack/bin/webpack.js
 fi
 
+cp -r ./libs/* ./app/js
 cp -r ./static/* ./app/
-cat ./static/index.html | tr '\n' ' ' | sed 's/  //g' > ./app/index.html
+cat ./static/index.html | sed 's/"libs\/w\.js"/"js\/w.js"/g' > ./app/index.tmp.html
+cat ./app/index.tmp.html | tr '\n' ' ' | sed 's/  //g' > ./app/index.html
+rm ./app/index.tmp.html
 
 if [[ "${IS_DIST}" == "TRUE" ]]; then
   rm -r ./dist

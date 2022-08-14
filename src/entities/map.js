@@ -18,10 +18,10 @@ class Map {
                 return { layer: "ground", height: 0 };
             }
             if (i === mapSize - 1) {
-                return { layer: "front", height: 15 };
+                return { layer: "front", height: 1 };
             }
             if (!j) {
-                return { layer: "front", height: 15 };
+                return { layer: "front", height: 1 };
             }
             return { layer: "ground", height: int(0, 50) ? 0 : Math.round(pick(height / 2, height / 3)) };
         }));
@@ -29,7 +29,7 @@ class Map {
 
 
     makeTile = (ctx, x, y, h) => {
-        
+
         if (h > 0) {
             ctx.fillStyle = "#773333";
             ctx.beginPath();
@@ -40,7 +40,7 @@ class Map {
             ctx.closePath();
             ctx.stroke();
             ctx.fill();
-            
+
             ctx.fillStyle = "#662222";
             ctx.beginPath();
             ctx.moveTo(x - this.tileSize, y);
@@ -76,10 +76,18 @@ class Map {
         }
     };
 
-    drawMap = (ctx) => {
-        this.drawMapLayer(ctx, "back");
-        this.drawMapLayer(ctx, "ground");
-        this.drawMapLayer(ctx, "front");
+    drawMap = (w) => {
+        const scale = 0.2;
+        w.group({ n: "map", x: -(this.mapSize/2)*scale, y: -(this.mapSize/2)*scale });
+        for (let j = 0; j < this.map.length; j++) {
+            for (let i = 0; i < this.map[j].length; i++) {
+                if(!this.map[j][i].height){
+                    w.plane({ g: "map", x: i*scale, y: j*scale, z: 0*scale, size: 1*scale, b: "#aa4444ff" });
+                } else {
+                    w.cube({ g: "map", x: i*scale, y: j*scale, z: (this.map[j][i].height/2)*scale, d: this.map[j][i].height*scale, w:1*scale, h:1*scale, b: "#aa4444ff" });
+                }
+            }
+        }
     };
 }
 

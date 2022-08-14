@@ -1,10 +1,13 @@
 import Map from './entities/map';
-
+const W = window.W;
 const gameCanvas = document.querySelector('[game]');
-window.gameCanvas = gameCanvas;
 gameCanvas.width = window.innerWidth;
 gameCanvas.height = window.innerHeight;
-const gameCtx = gameCanvas.getContext('webgl');
+W.reset(gameCanvas);
+W.camera({ x: 6, y: -6, z: 6.5, rx: 45, rz: 45 });
+W.light({ x: -0.5, y: -0.5, z: -1 });
+W.ambient(0.1);
+W.clearColor("#000000");
 gameCanvas.oncontextmenu = (e) => { e.preventDefault(); e.stopPropagation(); };
 
 const uiCanvas = document.querySelector('[ui]');
@@ -25,12 +28,11 @@ window.speed = 1;
 //     console.log(`Godmode: ${!canLose}`);
 // };
 
-const map = new Map(50, 20, 80);
+const map = new Map(50, 20, 6);
 
 window.main = function (t) {
-    gameCtx.clearRect(0, 0, gameCanvas.width, gameCanvas.height);
     uiCtx.clearRect(0, 0, uiCanvas.width, uiCanvas.height);
-    // map.drawMap(gameCtx);
+    map.drawMap(W);
     window.requestAnimationFrame(main);
 };
 
