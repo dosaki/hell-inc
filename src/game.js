@@ -4,7 +4,7 @@ const gameCanvas = document.querySelector('[game]');
 window.gameCanvas = gameCanvas;
 gameCanvas.width = window.innerWidth;
 gameCanvas.height = window.innerHeight;
-const gameCtx = gameCanvas.getContext('webgl');
+const gameCtx = gameCanvas.getContext('2d');
 gameCanvas.oncontextmenu = (e) => { e.preventDefault(); e.stopPropagation(); };
 
 const uiCanvas = document.querySelector('[ui]');
@@ -30,7 +30,7 @@ const map = new Map(50, 20, 80);
 window.main = function (t) {
     gameCtx.clearRect(0, 0, gameCanvas.width, gameCanvas.height);
     uiCtx.clearRect(0, 0, uiCanvas.width, uiCanvas.height);
-    // map.drawMap(gameCtx);
+    map.drawMap(gameCtx);
     window.requestAnimationFrame(main);
 };
 
