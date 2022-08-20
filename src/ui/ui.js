@@ -121,10 +121,6 @@ class Ui {
 
     draw(ctx) {
         this.drawBot(ctx);
-        if (!this.selectedItem || !this.inMapArea) {
-            ctx.fillStyle = '#ffffff';
-            ctx.fillRect(this.x - 3, this.y - 3, 6, 6);
-        }
     }
 }
 
