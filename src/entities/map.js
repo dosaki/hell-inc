@@ -16,7 +16,7 @@ class Map {
                 return { h, t: pick(...t), o: null };
             }
             if (j === 0 && [(this.s / 2) + 1, this.s / 2, (this.s / 2) - 1].includes(i)) {
-                return { h: 0, t: pick(...t), o: null };
+                return { h: 0, t: pick(...t), o: true };
             }
             if (i === s - 1) {
                 return { h: 2, t: pick(...t), o: null };

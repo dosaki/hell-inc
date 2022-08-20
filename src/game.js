@@ -7,6 +7,7 @@ const gameCanvas = document.querySelector('[game]');
 gameCanvas.oncontextmenu = (e) => { e.preventDefault(); e.stopPropagation(); };
 gameCanvas.width = Math.min(window.innerWidth, window.innerHeight);
 gameCanvas.height = gameCanvas.width;
+ui.size = gameCanvas.width;
 W.reset(gameCanvas);
 W.light({ x: -0.2, y: -1, z: 0.6 });
 W.ambient(0.1);
