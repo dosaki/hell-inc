@@ -20,7 +20,7 @@ const ortho = (value, near, far) => {
         0, 0, -(far + near) / (far - near), 1
     ]);
 };
-const screenToWorld = (x, y) => W.v.inverse().multiply(W.projection).transformPoint(new DOMPoint(x, 1, y));
+const screenToWorld = (x, y) => W.v.inverse().multiply(W.projection).transformPoint(new DOMPoint(90 * x - 45, 1, 180 * y - 134));
 
 const map = new Map(SIZE, 20, [hell1, hell2, hell3, hell4], W);
 let mX = null;
@@ -38,8 +38,8 @@ uiCanvas.addEventListener("mousemove", (e) => {
     const rect = e.target.getBoundingClientRect();
     mX = e.clientX - rect.left;
     mY = e.clientY - rect.top;
-    if(!W.v) return
-    const { x, z } = screenToWorld((90 * mX / rect.width) - 45, (180 * mY / rect.height) - 134);
+    if (!W.v) return;
+    const { x, z } = screenToWorld(mX / rect.width, mY / rect.height);
     wX = Math.min(48, Math.max(1, Math.round(x)));
     wY = Math.min(48, Math.max(1, Math.round(z)));
 });

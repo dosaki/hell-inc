@@ -11,7 +11,7 @@ class Resources {
         this.machines = [
             new Machine("Path", 3, false, 0, 1, "#ffffcc", "plane", 1, 1),
             new Machine("Misery Extractor", 5, true, 2, 1, "#4466aa", "cube", 3, 3, 5),
-            new Machine("Dispair Room", 10, false, 1, 1, "#440099", "cube", 6, 6, 5),
+            new Machine("Dispair Room", 10, false, 1, 1, "#440099", "cube", 5, 5, 8),
             new Machine("Iron Maiden", 25, true, 5, 2, "#886666", "cube", 2, 1, 2),
             new Machine("Human Puzzle", 50, true, 20, 3, "#448811", "cube", 2, 2, 1),
             new Machine("Masticator", 100, true, 50, 4, "#881144", "cube", 2, 2, 3),

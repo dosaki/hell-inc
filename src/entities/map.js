@@ -28,12 +28,37 @@ class Map {
         }));
     }
 
+    isAreaOccupied(x, y, width, depth) {
+        if (x - Math.floor(width / 2) === 0 || x + Math.floor(width / 2) === this.s - 1 || y - Math.floor(depth / 2) === 0 || y + Math.floor(depth / 2) === this.s - 1) {
+            return true;
+        }
+        for (let j = y - Math.floor(depth / 2); j <= y + Math.floor(depth / 2); j++) {
+            for (let i = x - Math.floor(width / 2); i <= x + Math.floor(width / 2); i++) {
+                if (!this.map[j] || !this.map[j][i] || this.map[j][i].o) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    addToArea(x, y, width, depth, m) {
+        for (let j = y - Math.floor(depth / 2); j <= y + Math.floor(depth / 2); j++) {
+            for (let i = x - Math.floor(width / 2); i <= x + Math.floor(width / 2); i++) {
+                this.map[j][i].o = m;
+            }
+        }
+    }
+
     doClicks(selectedItem, x, y, inMapArea) {
+        this.w.delete("placement");
         if (!inMapArea) {
             return;
         }
-        if (selectedItem) {
-            this.m.push({ m: selectedItem.clone(this.mi), x, y });
+        if (selectedItem && !this.isAreaOccupied(x, y, selectedItem.width, selectedItem.depth)) {
+            const m = selectedItem.clone(this.mi);
+            this.m.push({ m, x, y });
+            this.addToArea(x, y, selectedItem.width, selectedItem.depth, m);
             this.mi++;
             if (selectedItem.type === "cube") {
                 this.w["cube"]({
@@ -53,7 +78,6 @@ class Map {
                 });
             }
         }
-        this.w.delete("placement");
     }
 
     doRightClicks() {
@@ -67,7 +91,7 @@ class Map {
                     n: "placement",
                     x, y: selectedItem.height / 2, z,
                     d: selectedItem.depth, w: selectedItem.width, h: selectedItem.height,
-                    b: "#aaaa0050",
+                    b: this.isAreaOccupied(x, z, selectedItem.width, selectedItem.depth) ? "#ff000060" : "#aaaa0050"
                 });
             }
             if (selectedItem.type === "plane") {
@@ -75,7 +99,7 @@ class Map {
                     n: "placement",
                     x, y: selectedItem.height / 2, z,
                     size: selectedItem.width,
-                    b: "#aaaa0050",
+                    b: this.isAreaOccupied(x, z, selectedItem.width, selectedItem.depth) ? "#ff000060" : "#aaaa0050",
                     rx: -90
                 });
             }
