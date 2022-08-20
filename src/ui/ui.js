@@ -19,7 +19,7 @@ class Ui {
         this.x = x;
         this.y = y;
         this.inMapArea = y < h - 250;
-        this.items.forEach(i => this.coordinatesMatchItem(i, x, y) ? i.onHover(x, y) : null);
+        this.items.forEach(i => this.coordinatesMatchItem(i, x, y) ? i.onHover(x, y) : (i.item.isHovering = false));
     }
 
     doClicks() {
@@ -48,27 +48,6 @@ class Ui {
             ctx.strokeStyle = m.requiredLevel > resources.currentLevel ? '#554545' : '#774444';
             ctx.fillRect(15 + (i * 115), ctx.canvas.height - 235, 100, 100);
             ctx.strokeRect(15 + (i * 115), ctx.canvas.height - 235, 100, 100);
-            if (!this.items.map(i => i.item).includes(m)) {
-                this.items.push({
-                    item: m,
-                    pos: [15 + (i * 115), ctx.canvas.height - 235, 100, 100],
-                    onHover: (x, y) => {
-                        if (m.requiredLevel <= resources.currentLevel) {
-                            ctx.fillStyle = '#FFaaaa40';
-                            ctx.fillRect(15 + (i * 115), ctx.canvas.height - 235, 100, 100);
-                        }
-                        ctx.fillStyle = m.requiredLevel > resources.currentLevel ? '#221919' : '#331111';
-                        ctx.strokeStyle = m.requiredLevel > resources.currentLevel ? '#554545' : '#774444';
-                        ctx.fillRect(x, y - 100, 200, 100);
-                        ctx.strokeRect(x, y - 100, 200, 100);
-                    },
-                    onClick: (x, y) => {
-                        if (m.requiredLevel <= resources.currentLevel) {
-                            this.selectedItem = m;
-                        }
-                    }
-                });
-            }
 
             ctx.fillStyle = m.requiredLevel > resources.currentLevel ? '#887777' : '#ffdddd';
             ctx.font = '20px serif';
@@ -78,6 +57,21 @@ class Ui {
                 name = m.name.split(" ");
             }
             name.forEach((n, j) => ctx.fillText(n, 27 + (i * 115), ctx.canvas.height - 210 + (j * 25)));
+
+            if (!this.items.map(i => i.item).includes(m)) {
+                this.items.push({
+                    item: m,
+                    pos: [15 + (i * 115), ctx.canvas.height - 235, 100, 100],
+                    onHover: (x, y) => {
+                        m.isHovering = true;
+                    },
+                    onClick: (x, y) => {
+                        if (m.requiredLevel <= resources.currentLevel) {
+                            this.selectedItem = m;
+                        }
+                    }
+                });
+            }
         });
 
         resources.demonsToHire.forEach((d, i) => {
@@ -90,15 +84,35 @@ class Ui {
                     item: d,
                     pos: [ctx.canvas.width - 235 + ((i % 2) * 120), ctx.canvas.height - 235 + (Math.floor(i / 2) * 120), 100, 100],
                     onHover: (x, y) => {
-                        ctx.fillStyle = d.miseryCost > resources.misery ? '#221919' : '#331111';
-                        ctx.strokeStyle = d.miseryCost > resources.misery ? '#554545' : '#774444';
-                        ctx.fillRect(x - 200, y - 100, 200, 100);
-                        ctx.strokeRect(x - 200, y - 100, 200, 100);
+                        d.isHovering = true;
                     },
                     onClick: (x, y) => {
                         this.selectedItem = m;
                     }
                 });
+            }
+        });
+
+
+        resources.machines.forEach((m, i) => {
+            if (m.isHovering) {
+                if (m.requiredLevel <= resources.currentLevel) {
+                    ctx.fillStyle = '#FFaaaa40';
+                    ctx.fillRect(15 + (i * 115), ctx.canvas.height - 235, 100, 100);
+                }
+                ctx.fillStyle = m.requiredLevel > resources.currentLevel ? '#221919' : '#331111';
+                ctx.strokeStyle = m.requiredLevel > resources.currentLevel ? '#554545' : '#774444';
+                ctx.fillRect(this.x, this.y - 100, 200, 100);
+                ctx.strokeRect(this.x, this.y - 100, 200, 100);
+            }
+        });
+
+        resources.demonsToHire.forEach((d, i) => {
+            if (d.isHovering) {
+                ctx.fillStyle = d.miseryCost > resources.misery ? '#221919' : '#331111';
+                ctx.strokeStyle = d.miseryCost > resources.misery ? '#554545' : '#774444';
+                ctx.fillRect(this.x - 200, this.y - 100, 200, 100);
+                ctx.strokeRect(this.x - 200, this.y - 100, 200, 100);
             }
         });
     }

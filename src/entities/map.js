@@ -50,32 +50,42 @@ class Map {
         }
     }
 
-    doClicks(selectedItem, x, y, inMapArea) {
+    doClicks(selectedItem, x, y, inMapArea, isDragging, startX, startY) {
         this.w.delete("placement");
         if (!inMapArea) {
             return;
         }
+        if (isDragging && selectedItem && selectedItem.type === "plane") {
+            for (let j = Math.min(y, startY); j <= Math.max(y, startY); j++) {
+                for (let i = Math.min(x, startX); i <= Math.max(x, startX); i++) {
+                    this.doClicks(selectedItem, i, j, inMapArea);
+                }
+            }
+            return;
+        }
+
         if (selectedItem && !this.isAreaOccupied(x, y, selectedItem.width, selectedItem.depth)) {
             const m = selectedItem.clone(this.mi);
             this.m.push({ m, x, y });
             this.addToArea(x, y, selectedItem.width, selectedItem.depth, m);
             this.mi++;
+            let opts = {
+                n: `b-${this.mi}`,
+                x,
+                y: selectedItem.height / 2,
+                d: selectedItem.depth, w: selectedItem.width, h: selectedItem.height,
+                z: y
+            };
+            selectedItem.colour[0] === '#' ? opts["b"] = selectedItem.colour : opts["t"] = pick(...selectedItem.colour);
             if (selectedItem.type === "cube") {
-                this.w["cube"]({
-                    n: `b-${this.mi}`,
-                    x, y: selectedItem.height / 2, z: y,
-                    d: selectedItem.depth, w: selectedItem.width, h: selectedItem.height,
-                    b: selectedItem.colour,
-                });
+                this.w["cube"](opts);
             }
             if (selectedItem.type === "plane") {
-                this.w["plane"]({
-                    n: `b-${this.mi}`,
-                    x, y: selectedItem.height / 2, z: y,
-                    size: selectedItem.width,
-                    b: selectedItem.colour,
-                    rx: -90
-                });
+                opts["y"] = 0;
+                opts["h"] = 0.1;
+                opts["b"] = "#00000000"
+                opts["mix"] = "0.25"
+                this.w["cube"](opts);
             }
         }
     }
@@ -84,23 +94,30 @@ class Map {
         this.w.delete("placement");
     }
 
-    doHovers(selectedItem, x, z) {
-        if (selectedItem) {
+    doHovers(selectedItem, x, z, inMapArea, isDragging, startX, startZ) {
+        if (selectedItem && inMapArea) {
             if (selectedItem.type === "cube") {
                 this.w["cube"]({
                     n: "placement",
-                    x, y: selectedItem.height / 2, z,
-                    d: selectedItem.depth, w: selectedItem.width, h: selectedItem.height,
+                    x,
+                    y: selectedItem.height / 2,
+                    z,
+                    d: selectedItem.depth,
+                    w: selectedItem.width,
+                    h: selectedItem.height,
                     b: this.isAreaOccupied(x, z, selectedItem.width, selectedItem.depth) ? "#ff000060" : "#aaaa0050"
                 });
             }
             if (selectedItem.type === "plane") {
-                this.w["plane"]({
+                this.w["cube"]({
                     n: "placement",
-                    x, y: selectedItem.height / 2, z,
-                    size: selectedItem.width,
-                    b: this.isAreaOccupied(x, z, selectedItem.width, selectedItem.depth) ? "#ff000060" : "#aaaa0050",
-                    rx: -90
+                    x: isDragging ? ((x < startX ? startX : x) - Math.abs(x - startX) / 2) : x,
+                    y: 0,
+                    z: isDragging ? ((z < startZ ? startZ : z) - Math.abs(z - startZ) / 2) : z,
+                    w: isDragging ? Math.floor(x < startX ? startX - x : x - startX) + selectedItem.width : selectedItem.width,
+                    d: isDragging ? Math.floor(z < startZ ? startZ - z : z - startZ) + selectedItem.width : selectedItem.width,
+                    h: 0.1,
+                    b: this.isAreaOccupied(x, z, selectedItem.width, selectedItem.depth) && !isDragging ? "#ff000060" : "#aaaa0050"
                 });
             }
         }

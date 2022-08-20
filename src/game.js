@@ -27,13 +27,17 @@ let mX = null;
 let mY = null;
 let wX = null;
 let wY = null;
+let swX = null;
+let swY = null;
 let eventType = null;
+let isDragging = false;
 const uiCanvas = document.querySelector('[ui]');
 window.uiCanvas = uiCanvas;
 uiCanvas.width = Math.min(window.innerWidth, window.innerHeight);
 uiCanvas.height = uiCanvas.width;
 const uiCtx = uiCanvas.getContext('2d');
 uiCanvas.addEventListener("mousemove", (e) => {
+    isDragging = eventType === "mousedown" || (isDragging && eventType === "hover");
     eventType = "hover";
     const rect = e.target.getBoundingClientRect();
     mX = e.clientX - rect.left;
@@ -42,9 +46,25 @@ uiCanvas.addEventListener("mousemove", (e) => {
     const { x, z } = screenToWorld(mX / rect.width, mY / rect.height);
     wX = Math.min(48, Math.max(1, Math.round(x)));
     wY = Math.min(48, Math.max(1, Math.round(z)));
+
+    if (mX && mY) {
+        ui.doHovers(mX, mY, uiCtx.canvas.height);
+        map.doHovers(ui.selectedItem, wX, wY, ui.inMapArea, isDragging, swX, swY);
+    }
 });
 uiCanvas.addEventListener("click", (e) => {
     eventType = "click";
+
+    if (mX && mY) {
+        ui.doClicks(mX, mY);
+        map.doClicks(ui.selectedItem, wX, wY, ui.inMapArea, isDragging, swX, swY);
+        eventType === null;
+    }
+});
+uiCanvas.addEventListener("mousedown", (e) => {
+    swX = wX;
+    swY = wY;
+    eventType = "mousedown";
 });
 uiCanvas.addEventListener("mouseout", () => {
     eventType = null;
@@ -54,6 +74,11 @@ uiCanvas.addEventListener("mouseout", () => {
 uiCanvas.oncontextmenu = (e) => {
     e.preventDefault(); e.stopPropagation();
     eventType = "rightClick";
+
+    if (mX && mY && eventType === "rightClick") {
+        ui.doRightClicks(mX, mY);
+        map.doRightClicks();
+    }
 };
 
 window.speed = 1;
@@ -75,18 +100,6 @@ setTimeout(() => {
 window.main = function (t) {
     uiCtx.clearRect(0, 0, uiCanvas.width, uiCanvas.height);
     ui.draw(uiCtx);
-    if (mX && mY && eventType === "hover") {
-        ui.doHovers(mX, mY, uiCtx.canvas.height);
-        map.doHovers(ui.selectedItem, wX, wY);
-    }
-    if (mX && mY && eventType === "click") {
-        ui.doClicks(mX, mY);
-        map.doClicks(ui.selectedItem, wX, wY, ui.inMapArea);
-    }
-    if (mX && mY && eventType === "rightClick") {
-        ui.doRightClicks(mX, mY);
-        map.doRightClicks();
-    }
     window.requestAnimationFrame(main);
 };
 
