@@ -25,16 +25,26 @@
             grid-column: 1;
             background: transparent;
         }
+        [hidden] {
+            display: none;
+        }
+        canvas {
+            cursor: none;
+        }
     </style>
 </head>
 
 <body>
+    <img src=img/hell1.png id=hell1 hidden>
+    <img src=img/hell2.png id=hell2 hidden>
+    <img src=img/hell3.png id=hell3 hidden>
+    <img src=img/hell4.png id=hell4 hidden>
     <div>
         <canvas game></canvas>
-        <canvas ui></canvas>
+        <canvas ui>
     </div>
-    <script src="libs/w.js"></script>
-    <script src="js/game.js"></script>
+    <script src=libs/w.js></script>
+    <script src=js/game.js></script>
 </body>
 
 </html>

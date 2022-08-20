@@ -1,90 +1,102 @@
 import { int, pick } from '../utils/random-utils';
 
 class Map {
-    constructor(mapSize, tileSize, height) {
-        this.tileSize = tileSize;
-        this.mapSize = mapSize;
-        this.height = height;
+    constructor(s, h, t, w) {
+        this.s = s;
+        this.bi = 0;
+        this.m = [];
+        this.mi = 0;
+        this.w = w;
 
-        this.mapHeight = (tileSize * 0.6 * mapSize) + height;
-        this.map = [...new Array(mapSize)].map((_, j) => [...new Array(mapSize)].map((_, i) => {
+        this.map = [...new Array(s)].map((_, j) => [...new Array(s)].map((_, i) => {
             if (!i) {
-                return { layer: "back", height };
+                return { h, t: pick(...t), o: null };
             }
-            if (j === mapSize - 1) {
-                return { layer: "back", height };
+            if (j === s - 1) {
+                return { h, t: pick(...t), o: null };
             }
-            if (j === 0 && [(this.mapSize / 2) + 1, this.mapSize / 2, (this.mapSize / 2) - 1].includes(i)) {
-                return { layer: "ground", height: 0 };
+            if (j === 0 && [(this.s / 2) + 1, this.s / 2, (this.s / 2) - 1].includes(i)) {
+                return { h: 0, t: pick(...t), o: null };
             }
-            if (i === mapSize - 1) {
-                return { layer: "front", height: 1 };
+            if (i === s - 1) {
+                return { h: 2, t: pick(...t), o: null };
             }
             if (!j) {
-                return { layer: "front", height: 1 };
+                return { h: 2, t: pick(...t), o: null };
             }
-            return { layer: "ground", height: int(0, 50) ? 0 : Math.round(pick(height / 2, height / 3)) };
+            return { h: 0, t: pick(...t), o: null };
         }));
     }
 
-
-    makeTile = (ctx, x, y, h) => {
-
-        if (h > 0) {
-            ctx.fillStyle = "#773333";
-            ctx.beginPath();
-            ctx.moveTo(x, y - h);
-            ctx.lineTo(x, y + this.tileSize / 2);
-            ctx.lineTo(x + this.tileSize, y);
-            ctx.lineTo(x + this.tileSize, y - h);
-            ctx.closePath();
-            ctx.stroke();
-            ctx.fill();
-
-            ctx.fillStyle = "#662222";
-            ctx.beginPath();
-            ctx.moveTo(x - this.tileSize, y);
-            ctx.lineTo(x - this.tileSize, y - h);
-            ctx.lineTo(x, y - h);
-            ctx.lineTo(x, y + this.tileSize / 2);
-            ctx.closePath();
-            ctx.stroke();
-            ctx.fill();
+    doClicks(selectedItem, x, y, inMapArea) {
+        if (!inMapArea) {
+            return;
         }
-
-        ctx.fillStyle = "#884444";
-        ctx.beginPath();
-        ctx.moveTo(x - this.tileSize, y - h);
-        ctx.lineTo(x, y - (this.tileSize / 2 + h));
-        ctx.lineTo(x + this.tileSize, y - h);
-        ctx.lineTo(x, y + (this.tileSize / 2 - h));
-        ctx.closePath();
-        ctx.stroke();
-        ctx.fill();
-    };
-
-    drawMapLayer = (ctx, layer) => {
-        for (let j = this.map.length - 1; j >= 0; j--) {
-            for (let i = 0; i < this.map[j].length; i++) {
-                if (this.map[j][i].layer === layer) {
-                    this.makeTile(ctx,
-                        this.tileSize + i * this.tileSize + j * this.tileSize,
-                        this.mapHeight + i * this.tileSize / 2 - j * this.tileSize / 2,
-                        this.map[j][i].height);
-                }
+        if (selectedItem) {
+            this.m.push({ m: selectedItem.clone(this.mi), x, y });
+            this.mi++;
+            if (selectedItem.type === "cube") {
+                this.w["cube"]({
+                    n: `b-${this.mi}`,
+                    x, y: selectedItem.height / 2, z: y,
+                    d: selectedItem.depth, w: selectedItem.width, h: selectedItem.height,
+                    b: selectedItem.colour,
+                });
+            }
+            if (selectedItem.type === "plane") {
+                this.w["plane"]({
+                    n: `b-${this.mi}`,
+                    x, y: selectedItem.height / 2, z: y,
+                    size: selectedItem.width,
+                    b: selectedItem.colour,
+                    rx: -90
+                });
             }
         }
-    };
+        this.w.delete("placement");
+    }
 
-    drawMap = (w) => {
-        const scale = 0.2;
-        w.group({ n: "map", x: -(this.mapSize/2)*scale, y: -(this.mapSize/2)*scale });
+    doRightClicks() {
+        this.w.delete("placement");
+    }
+
+    doHovers(selectedItem, x, z) {
+        if (selectedItem) {
+            if (selectedItem.type === "cube") {
+                this.w["cube"]({
+                    n: "placement",
+                    x, y: selectedItem.height / 2, z,
+                    d: selectedItem.depth, w: selectedItem.width, h: selectedItem.height,
+                    b: "#aaaa0050",
+                });
+            }
+            if (selectedItem.type === "plane") {
+                this.w["plane"]({
+                    n: "placement",
+                    x, y: selectedItem.height / 2, z,
+                    size: selectedItem.width,
+                    b: "#aaaa0050",
+                    rx: -90
+                });
+            }
+        }
+    }
+
+    removeMachine(id) {
+        this.m.filter(m => m.m.id !== id);
+    }
+
+    drawMap(scale) {
         for (let j = 0; j < this.map.length; j++) {
             for (let i = 0; i < this.map[j].length; i++) {
-                if(!this.map[j][i].height){
-                    w.plane({ g: "map", x: i*scale, y: j*scale, z: 0*scale, size: 1*scale, b: "#aa4444ff" });
+                if (!this.map[j][i].h) {
+                    this.w.plane({ g: "map", x: i * scale, y: 0, z: j * scale, size: scale, t: this.map[j][i].t, rx: -90 });
                 } else {
-                    w.cube({ g: "map", x: i*scale, y: j*scale, z: (this.map[j][i].height/2)*scale, d: this.map[j][i].height*scale, w:1*scale, h:1*scale, b: "#aa4444ff" });
+                    this.w.cube({
+                        g: "map", x: i * scale, y: (this.map[j][i].h / 2) * scale, z: j * scale,
+                        h: this.map[j][i].h * scale,
+                        w: scale, d: scale, t: this.map[j][i].t
+                    });
                 }
             }
         }
