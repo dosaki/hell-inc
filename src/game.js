@@ -24,7 +24,7 @@ const ortho = (value, near, far) => {
 };
 const screenToWorld = (x, y) => W.v.inverse().multiply(W.projection).transformPoint(new DOMPoint(90 * x - 45, 1, 180 * y - 134));
 
-const map = new Map(SIZE, 20, [hell1, hell2, hell3, hell4], W);
+const map = new Map(SIZE, 20, [hell1, hell2], W);
 let mX = null;
 let mY = null;
 let wX = null;
@@ -99,6 +99,11 @@ setTimeout(() => {
     W.camera({ x: 50, y: 32, z: 0, rx: -45, ry: 135 });
 }, 1);
 
+let goUp = true;
+setInterval(() => {
+    map.animateSouls(goUp ? 0.3 : -0.3);
+    goUp = !goUp;
+}, 250);
 window.main = function (t) {
     uiCtx.clearRect(0, 0, uiCanvas.width, uiCanvas.height);
     ui.draw(uiCtx);

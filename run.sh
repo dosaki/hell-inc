@@ -10,5 +10,6 @@ CURRENT_DIR="$( cd -P "$( dirname "${SOURCE}" )" && pwd )"
 
 cd "${CURRENT_DIR}"
 
-./build.sh --dev
+./build.sh
+./build.sh --dev > /dev/null
 python -m http.server --directory app

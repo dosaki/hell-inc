@@ -1,4 +1,4 @@
-import { pick } from '../utils/random-utils';
+import { int, pick } from '../utils/random-utils';
 import Soul from './soul';
 
 class Map {
@@ -14,21 +14,21 @@ class Map {
 
         this.map = [...new Array(s)].map((_, j) => [...new Array(s)].map((_, i) => {
             if (!i) {
-                return { h, t: pick(...t), o: null };
+                return { h, t: pick(...t), r: pick(0, 90, 180, 270), b: pick("#661111", "#441111", "#330000"), o: null };
             }
             if (j === s - 1) {
-                return { h, t: pick(...t), o: null };
+                return { h, t: pick(...t), r: pick(0, 90, 180, 270), b: pick("#661111", "#441111", "#330000"), o: null };
             }
             if (j < 3 && [(this.s / 2) + 1, this.s / 2, (this.s / 2) - 1].includes(i)) {
-                return { h: 0, t: bones1, o: true };
+                return { h: 0, t: bones1, r: pick(0, 90, 180, 270), b: "#3300ff", o: true };
             }
             if (i === s - 1) {
-                return { h: 2, t: pick(...t), o: null };
+                return { h: 2, t: pick(...t), r: pick(0, 90, 180, 270), b: pick("#661111", "#441111", "#330000"), o: null };
             }
             if (!j) {
-                return { h: 2, t: pick(...t), o: null };
+                return { h: 2, t: pick(...t), r: pick(0, 90, 180, 270), b: pick("#661111", "#441111", "#330000"), o: null };
             }
-            return { h: 0, t: pick(...t), o: null };
+            return { h: 0, t: pick(...t), r: pick(0, 90, 180, 270), b: pick("#661111", "#441111", "#330000"), o: null };
         }));
     }
 
@@ -36,22 +36,27 @@ class Map {
         return [
             [(this.s / 2) + 1, 2],
             [(this.s / 2) - 1, 2],
-            [(this.s / 2) + 1, 0],
-            [(this.s / 2) - 1, 0]
+            [(this.s / 2), 1]
         ].find(([x, z]) => !this.is.find(s => s.x === x && s.z === z));
     }
 
     spawnSoul() {
-        if (this.is.length < 4) {
+        if (this.is.length < 3) {
             const [x, z] = this.freeSoulSpot();
             const s = new Soul(this.sli, x, z);
             console.log(`Spawning soul ${s.id} at (${s.x},${s.z})`);
             this.sl.push(s);
             this.is.push(s);
             this.sli++;
-            
-            this.w.plane({ n: `s-${s.id}`, x: s.x, y: 1, z: s.z, h: 2, w: 1, ry:135, t: soul });
+
+            this.w.plane({ n: `s-${s.id}`, x: s.x, y: 1, z: s.z, h: 2, w: 1, ry: 135, t: soul });
         }
+    }
+
+    animateSouls(offset) {
+        this.sl.forEach((s, i) => {
+            this.w.move({ n: `s-${s.id}`, y: 1 + offset, a: 250 }, (i % 5) * 100);
+        });
     }
 
     isAreaOccupied(x, y, width, depth) {
@@ -110,7 +115,8 @@ class Map {
                 opts["y"] = 0;
                 opts["h"] = 0.1;
                 opts["b"] = "#00000000";
-                opts["mix"] = "0.25";
+                opts["mix"] = int(10, 15) / 40;
+                opts["ry"] = pick(0, 90, 180, 270);
                 this.w["cube"](opts);
             }
         }
@@ -121,8 +127,8 @@ class Map {
     }
 
     doHovers(selectedItem, x, z, inMapArea, isDragging, startX, startZ) {
-        if (selectedItem && inMapArea) {
-            if (selectedItem.type === "cube") {
+        if (inMapArea) {
+            if (selectedItem && selectedItem.type === "cube") {
                 this.w["cube"]({
                     n: "placement",
                     x,
@@ -134,7 +140,7 @@ class Map {
                     b: this.isAreaOccupied(x, z, selectedItem.width, selectedItem.depth) ? "#ff000060" : "#aaaa0050"
                 });
             }
-            if (selectedItem.type === "plane") {
+            if (selectedItem && selectedItem.type === "plane") {
                 this.w["cube"]({
                     n: "placement",
                     x: isDragging ? ((x < startX ? startX : x) - Math.abs(x - startX) / 2) : x,
@@ -144,6 +150,18 @@ class Map {
                     d: isDragging ? Math.floor(z < startZ ? startZ - z : z - startZ) + selectedItem.width : selectedItem.width,
                     h: 0.1,
                     b: this.isAreaOccupied(x, z, selectedItem.width, selectedItem.depth) && !isDragging ? "#ff000060" : "#aaaa0050"
+                });
+            }
+            if (!selectedItem) {
+                this.w["cube"]({
+                    n: "selector",
+                    x,
+                    y: 0,
+                    z,
+                    w: this.scale,
+                    d: this.scale,
+                    h: 0.1,
+                    t: selector
                 });
             }
         }
@@ -157,15 +175,31 @@ class Map {
         for (let j = 0; j < this.map.length; j++) {
             for (let i = 0; i < this.map[j].length; i++) {
                 if (!this.map[j][i].h) {
-                    this.w.plane({ g: "map", x: i * scale, y: 0, z: j * scale, size: scale, t: this.map[j][i].t, rx: -90 });
+                    this.w.plane({
+                        g: "map",
+                        x: i * scale,
+                        y: 0,
+                        z: j * scale,
+                        size: scale,
+                        t: this.map[j][i].t,
+                        b: this.map[j][i].b,
+                        mix: int(3, 7) / 10,
+                        rx: -90,
+                        ry: this.map[j][i].r
+                    });
                 } else {
                     this.w.cube({
-                        g: "map", x: i * scale,
+                        g: "map",
+                        x: i * scale,
                         y: (this.map[j][i].h / 2) * scale,
                         z: j * scale,
                         h: this.map[j][i].h * scale,
                         w: scale,
-                        d: scale, t: this.map[j][i].t
+                        d: scale,
+                        t: this.map[j][i].t,
+                        b: this.map[j][i].b,
+                        mix: int(3, 7) / 10,
+                        ry: this.map[j][i].r
                     });
                 }
             }
