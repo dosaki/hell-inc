@@ -106,6 +106,20 @@ class Ui {
                 ctx.strokeStyle = m.requiredLevel > resources.currentLevel ? '#554545' : '#774444';
                 ctx.fillRect(this.x, this.y - this.r(100), this.r(200), this.r(100));
                 ctx.strokeRect(this.x, this.y - this.r(100), this.r(200), this.r(100));
+
+                ctx.fillStyle = m.requiredLevel > resources.currentLevel ? '#887777' : '#ffdddd';
+                ctx.font = `${this.r(16)}px luminari, fantasy`;
+                ctx.fillText(m.name, this.x + this.r(10), this.y - this.r(78));
+                ctx.font = `${this.r(14)}px luminari, fantasy`;
+                ctx.fillText(`Level: ${m.requiredLevel}`, this.x + this.r(190) - ctx.measureText(`Level: ${m.requiredLevel}`).width, this.y - this.r(78));
+                ctx.fillText(`Cost: ${m.cost} coins`, this.x + this.r(10), this.y - this.r(50));
+                if (m._miseryPerTick) {
+                    ctx.fillText(`Misery: +${m._miseryPerTick}`, this.x + this.r(10), this.y - this.r(32));
+                }
+                if (m.needsDemon) {
+                    ctx.font = `${this.r(10)}px luminari, fantasy`;
+                    ctx.fillText("Requires Demon to operate", this.x + this.r(10), this.y - this.r(12));
+                }
             }
         });
 

@@ -1,4 +1,5 @@
-import { int, pick } from '../utils/random-utils';
+import { pick } from '../utils/random-utils';
+import Soul from './soul';
 
 class Map {
     constructor(s, h, t, w) {
@@ -6,6 +7,9 @@ class Map {
         this.bi = 0;
         this.m = [];
         this.mi = 0;
+        this.sl = [];
+        this.is = [];
+        this.sli = 0;
         this.w = w;
 
         this.map = [...new Array(s)].map((_, j) => [...new Array(s)].map((_, i) => {
@@ -15,8 +19,8 @@ class Map {
             if (j === s - 1) {
                 return { h, t: pick(...t), o: null };
             }
-            if (j === 0 && [(this.s / 2) + 1, this.s / 2, (this.s / 2) - 1].includes(i)) {
-                return { h: 0, t: pick(...t), o: true };
+            if (j < 3 && [(this.s / 2) + 1, this.s / 2, (this.s / 2) - 1].includes(i)) {
+                return { h: 0, t: bones1, o: true };
             }
             if (i === s - 1) {
                 return { h: 2, t: pick(...t), o: null };
@@ -26,6 +30,28 @@ class Map {
             }
             return { h: 0, t: pick(...t), o: null };
         }));
+    }
+
+    freeSoulSpot() {
+        return [
+            [(this.s / 2) + 1, 2],
+            [(this.s / 2) - 1, 2],
+            [(this.s / 2) + 1, 0],
+            [(this.s / 2) - 1, 0]
+        ].find(([x, z]) => !this.is.find(s => s.x === x && s.z === z));
+    }
+
+    spawnSoul() {
+        if (this.is.length < 4) {
+            const [x, z] = this.freeSoulSpot();
+            const s = new Soul(this.sli, x, z);
+            console.log(`Spawning soul ${s.id} at (${s.x},${s.z})`);
+            this.sl.push(s);
+            this.is.push(s);
+            this.sli++;
+            
+            this.w.plane({ n: `s-${s.id}`, x: s.x, y: 1, z: s.z, h: 2, w: 1, ry:135, t: soul });
+        }
     }
 
     isAreaOccupied(x, y, width, depth) {
@@ -83,8 +109,8 @@ class Map {
             if (selectedItem.type === "plane") {
                 opts["y"] = 0;
                 opts["h"] = 0.1;
-                opts["b"] = "#00000000"
-                opts["mix"] = "0.25"
+                opts["b"] = "#00000000";
+                opts["mix"] = "0.25";
                 this.w["cube"](opts);
             }
         }
@@ -134,9 +160,12 @@ class Map {
                     this.w.plane({ g: "map", x: i * scale, y: 0, z: j * scale, size: scale, t: this.map[j][i].t, rx: -90 });
                 } else {
                     this.w.cube({
-                        g: "map", x: i * scale, y: (this.map[j][i].h / 2) * scale, z: j * scale,
+                        g: "map", x: i * scale,
+                        y: (this.map[j][i].h / 2) * scale,
+                        z: j * scale,
                         h: this.map[j][i].h * scale,
-                        w: scale, d: scale, t: this.map[j][i].t
+                        w: scale,
+                        d: scale, t: this.map[j][i].t
                     });
                 }
             }

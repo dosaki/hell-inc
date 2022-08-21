@@ -1,5 +1,6 @@
 import Map from './entities/map';
 import ui from './ui/ui';
+import { int } from './utils/random-utils';
 const SIZE = 50;
 const SCALE = 1;
 const W = window.W;
@@ -101,6 +102,9 @@ setTimeout(() => {
 window.main = function (t) {
     uiCtx.clearRect(0, 0, uiCanvas.width, uiCanvas.height);
     ui.draw(uiCtx);
+    if (int(0, 100) >= 98) {
+        map.spawnSoul();
+    }
     window.requestAnimationFrame(main);
 };
 
