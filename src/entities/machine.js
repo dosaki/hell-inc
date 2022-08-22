@@ -12,10 +12,22 @@ class Machine {
         this.depth = depth || 0;
         this.height = height || 0;
         this.colour = colour;
+        this.soul = null;
+    }
+
+    updateSouls () {
+        if(this._miseryPerTick && this.soul) {
+            return this.soul.suffer(this.miseryPerTick);
+        }
+        return null;
+    }
+
+    get isFunctional() {
+        return !this.needsDemon || this.demonOperator;
     }
 
     get miseryPerTick() {
-        return this.needsDemon && !this.demonOperator ? 0 : this._miseryPerTick * (this.demonOperator ? this.demonOperator.miseryExtractionBonus : 1);
+        return this.isFunctional ? this._miseryPerTick * (this.demonOperator ? this.demonOperator.miseryExtractionBonus : 1) : 0;
     }
 
     clone(id) {

@@ -5,6 +5,7 @@ const SIZE = 50;
 const SCALE = 1;
 const W = window.W;
 const gameCanvas = document.querySelector('[game]');
+window.DEBUG = true;
 gameCanvas.oncontextmenu = (e) => { e.preventDefault(); e.stopPropagation(); };
 gameCanvas.width = Math.min(window.innerWidth, window.innerHeight);
 gameCanvas.height = gameCanvas.width;
@@ -24,7 +25,7 @@ const ortho = (value, near, far) => {
 };
 const screenToWorld = (x, y) => W.v.inverse().multiply(W.projection).transformPoint(new DOMPoint(90 * x - 45, 1, 180 * y - 134));
 
-const map = new Map(SIZE, 20, [hell1, hell2], W);
+const map = new Map(SIZE, 20, W);
 let mX = null;
 let mY = null;
 let wX = null;
@@ -50,16 +51,20 @@ uiCanvas.addEventListener("mousemove", (e) => {
     wY = Math.min(48, Math.max(1, Math.round(z)));
 
     if (mX && mY) {
-        ui.doHovers(mX, mY, uiCtx.canvas.height);
-        map.doHovers(ui.selectedItem, wX, wY, ui.inMapArea, isDragging, swX, swY);
+        if (!ui.doHovers(mX, mY, uiCtx.canvas.height)) {
+            map.doHovers(ui.selectedItem, wX, wY, ui.inMapArea, isDragging, swX, swY);
+        }
     }
 });
 uiCanvas.addEventListener("click", (e) => {
     eventType = "click";
 
     if (mX && mY) {
-        ui.doClicks(mX, mY);
-        map.doClicks(ui.selectedItem, wX, wY, ui.inMapArea, isDragging, swX, swY);
+        if (!ui.doClicks(mX, mY)) {
+            const r = map.doClicks(ui.selectedItem, wX, wY, ui.inMapArea, isDragging, swX, swY, mX, mY);
+            r && r.removeOthers ? ui.worldPopUps = [] : "";
+            r && r.popup ? ui.worldPopUps.push(r.popup) : "";
+        }
         eventType === null;
     }
 });
@@ -76,8 +81,9 @@ uiCanvas.addEventListener("mouseout", () => {
 uiCanvas.oncontextmenu = (e) => {
     e.preventDefault(); e.stopPropagation();
     eventType = "rightClick";
+    ui.worldPopUps = [];
 
-    if (mX && mY && eventType === "rightClick") {
+    if (mX && mY) {
         ui.doRightClicks(mX, mY);
         map.doRightClicks();
     }
@@ -97,6 +103,7 @@ setTimeout(() => {
     map.drawMap(SCALE);
     W.projection = ortho(45, 1, 999);
     W.camera({ x: 50, y: 32, z: 0, rx: -45, ry: 135 });
+    map.spawnSoul();
 }, 1);
 
 let goUp = true;
@@ -104,17 +111,21 @@ setInterval(() => {
     map.animateSouls(goUp ? 0.3 : -0.3);
     goUp = !goUp;
 }, 250);
-window.main = function (t) {
-    uiCtx.clearRect(0, 0, uiCanvas.width, uiCanvas.height);
-    ui.draw(uiCtx);
-    if (int(0, 100) >= 98) {
+
+let lastUpdate = 0;
+const main = function (t) {
+    if (int(0, 500) >= 495) {
         map.spawnSoul();
     }
+    map.moveSouls();
+    if (t - lastUpdate >= 500) {
+        map.updateMachines();
+        lastUpdate = t;
+    }
+
+    uiCtx.clearRect(0, 0, uiCanvas.width, uiCanvas.height);
+    ui.draw(uiCtx);
     window.requestAnimationFrame(main);
 };
 
-window.start = () => {
-    window.main();
-};
-
-window.start();
+main();

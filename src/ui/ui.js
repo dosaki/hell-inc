@@ -4,42 +4,48 @@ import resources from '../entities/resources';
 class Ui {
     constructor() {
         this.items = [];
+        this.worldItems = [];
         this.selectedItem = null;
         this.x = 0;
         this.y = 0;
         this.inMapArea = false;
         this.size = 1100;
+        this.worldPopUps = [];
     }
 
-    r(size) {
+    r = (size) => {
         return this.size < 1100 ? (size * this.size) / 1100 : size;
+    };
+
+    drawWorldPopUps(ctx) {
+        this.worldPopUps.forEach(wp => wp(ctx, this, this.r));
     }
 
-    coordinatesMatchItem(item, x, y) {
-        return item.pos[0] <= x && (item.pos[0] + item.pos[2]) >= x &&
-            item.pos[1] <= y && (item.pos[1] + item.pos[3]) >= y;
+    coordinatesMatchItem(pos, x, y) {
+        return pos[0] <= x && (pos[0] + pos[2]) >= x &&
+            pos[1] <= y && (pos[1] + pos[3]) >= y;
     }
 
     doHovers(x, y, h) {
         this.x = x;
         this.y = y;
         this.inMapArea = y < h - this.r(250);
-        this.items.forEach(i => this.coordinatesMatchItem(i, x, y) ? i.onHover(x, y) : (i.item.isHovering = false));
+        this.items.forEach(i => this.coordinatesMatchItem(i.pos, x, y) ? i.onHover(x, y) : (i.item.isHovering = false));
+        // return this.worldItems.map(i => this.coordinatesMatchItem(i.pos, x, y) ? i.onHover(x, y) : (i.item.isHovering = false))
+        //     .filter(r => r && r.preventPropagation).length > 0;
     }
 
     doClicks() {
-        this.items.forEach(i => this.coordinatesMatchItem(i, this.x, this.y) ? i.onClick(this.x, this.y) : null);
+        this.items.forEach(i => this.coordinatesMatchItem(i.pos, this.x, this.y) ? i.onClick(this.x, this.y) : null);
+        return this.worldItems.map(i => this.coordinatesMatchItem(i.pos, this.x, this.y) ? i.onClick(this.x, this.y) : null)
+            .filter(r => r && r.preventPropagation).length > 0;;
     }
 
     doRightClicks() {
         this.selectedItem = null;
     }
 
-    drawTooltip(x, y) {
-
-    }
-
-    drawBot(ctx) {
+    drawInterface(ctx) {
         ctx.fillStyle = '#221111';
         ctx.strokeStyle = '#997777';
         ctx.fillRect(0, ctx.canvas.height - this.r(250), ctx.canvas.width, this.r(250));
@@ -134,7 +140,8 @@ class Ui {
     }
 
     draw(ctx) {
-        this.drawBot(ctx);
+        this.drawInterface(ctx);
+        this.drawWorldPopUps(ctx);
     }
 }
 

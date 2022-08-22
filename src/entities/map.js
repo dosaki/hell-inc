@@ -1,35 +1,38 @@
+import { astar, Graph } from '../utils/astar';
 import { int, pick } from '../utils/random-utils';
+import resources from './resources';
 import Soul from './soul';
 
 class Map {
-    constructor(s, h, t, w) {
-        this.s = s;
-        this.bi = 0;
-        this.m = [];
-        this.mi = 0;
-        this.sl = [];
-        this.is = [];
-        this.sli = 0;
-        this.w = w;
+    constructor(s, h, w) {
+        this.s = s; //size
+        this.m = []; //machines
+        this.mi = 0; //machine id iterator
+        this.sl = []; //soul list
+        this.is = []; //idle souls (waiting for approval)
+        this.sli = 0; //soul id iterator
+        this.w = w; // w lib
 
         this.map = [...new Array(s)].map((_, j) => [...new Array(s)].map((_, i) => {
             if (!i) {
-                return { h, t: pick(...t), r: pick(0, 90, 180, 270), b: pick("#661111", "#441111", "#330000"), o: null };
+                return { h, t: hell1, r: pick(0, 90, 180, 270), b: pick("#661111", "#441111", "#330000"), o: null };
             }
             if (j === s - 1) {
-                return { h, t: pick(...t), r: pick(0, 90, 180, 270), b: pick("#661111", "#441111", "#330000"), o: null };
+                return { h, t: hell1, r: pick(0, 90, 180, 270), b: pick("#661111", "#441111", "#330000"), o: null };
             }
-            if (j < 3 && [(this.s / 2) + 1, this.s / 2, (this.s / 2) - 1].includes(i)) {
-                return { h: 0, t: bones1, r: pick(0, 90, 180, 270), b: "#3300ff", o: true };
+            if (j < 4 && [(this.s / 2) + 1, this.s / 2, (this.s / 2) - 1].includes(i)) {
+                return { h: 0, t: bones1, r: pick(0, 90, 180, 270), b: "#aa3300", o: true };
             }
             if (i === s - 1) {
-                return { h: 2, t: pick(...t), r: pick(0, 90, 180, 270), b: pick("#661111", "#441111", "#330000"), o: null };
+                return { h: 2, t: hell1, r: pick(0, 90, 180, 270), b: pick("#661111", "#441111", "#330000"), o: null };
             }
             if (!j) {
-                return { h: 2, t: pick(...t), r: pick(0, 90, 180, 270), b: pick("#661111", "#441111", "#330000"), o: null };
+                return { h: 2, t: hell1, r: pick(0, 90, 180, 270), b: pick("#661111", "#441111", "#330000"), o: null };
             }
-            return { h: 0, t: pick(...t), r: pick(0, 90, 180, 270), b: pick("#661111", "#441111", "#330000"), o: null };
+            return { h: 0, t: hell1, r: pick(0, 90, 180, 270), b: pick("#661111", "#441111", "#330000"), o: null };
         }));
+
+        this.graph = new Graph(this.map.map(col => col.map(c => !c.o ? 999 : (c.o.name === "Path" ? 1 : 25))));
     }
 
     freeSoulSpot() {
@@ -53,9 +56,49 @@ class Map {
         }
     }
 
+    updateMachines() {
+        this.m.forEach(i => i.m.updateSouls());
+    }
+
+    moveSouls() {
+        this.sl.forEach(s => {
+            if (s.accepted) {
+                s.findGoal(this.m);
+                if (s.goal && s.goal.m.soul && s.goal.m.soul !== s) {
+                    s.goal = null;
+                }
+                if (s.goal && !s.isMoving && s.path.length === 0) {
+                    s.path = astar.search(this.graph, this.graph.get(s.x, s.z), this.graph.get(s.goal.x, s.goal.z));
+                    console.log(s.path);
+                }
+                if (!s.isMoving && s.path.length > 0) {
+                    this.w.move({
+                        n: `s-${s.id}`,
+                        x: s.path[0].x,
+                        z: s.path[0].y,
+                        a: 100,
+                    });
+                    s.isMoving = true;
+                    setTimeout(() => {
+                        s.x = s.path[0].x;
+                        s.z = s.path[0].y;
+                        s.path = s.path.slice(1);
+                        s.isMoving = false;
+                        if (s.path.length === 0 && s.goal) {
+                            s.goal.m.soul = s;
+                            s.goal = null;
+                        }
+                    }, 100);
+                }
+            }
+        });
+    }
+
     animateSouls(offset) {
         this.sl.forEach((s, i) => {
-            this.w.move({ n: `s-${s.id}`, y: 1 + offset, a: 250 }, (i % 5) * 100);
+            if (!s.markedForDeletion) {
+                this.w.move({ n: `s-${s.id}`, y: 1 + offset, a: 250 }, (i % 5) * 100);
+            }
         });
     }
 
@@ -79,15 +122,17 @@ class Map {
                 this.map[j][i].o = m;
             }
         }
+
+        this.graph = new Graph(this.map.map(col => col.map(c => !c.o ? 999 : (c.o.name === "Path" ? 1 : 25))));
     }
 
-    doClicks(selectedItem, x, y, inMapArea, isDragging, startX, startY) {
+    doClicks(selectedItem, x, z, inMapArea, isDragging, startX, startZ, mX, mY) {
         this.w.delete("placement");
         if (!inMapArea) {
             return;
         }
         if (isDragging && selectedItem && selectedItem.type === "plane") {
-            for (let j = Math.min(y, startY); j <= Math.max(y, startY); j++) {
+            for (let j = Math.min(z, startZ); j <= Math.max(z, startZ); j++) {
                 for (let i = Math.min(x, startX); i <= Math.max(x, startX); i++) {
                     this.doClicks(selectedItem, i, j, inMapArea);
                 }
@@ -95,19 +140,19 @@ class Map {
             return;
         }
 
-        if (selectedItem && !this.isAreaOccupied(x, y, selectedItem.width, selectedItem.depth)) {
+        if (selectedItem && !this.isAreaOccupied(x, z, selectedItem.width, selectedItem.depth)) {
             const m = selectedItem.clone(this.mi);
-            this.m.push({ m, x, y });
-            this.addToArea(x, y, selectedItem.width, selectedItem.depth, m);
+            this.m.push({ m, x, z });
+            this.addToArea(x, z, selectedItem.width, selectedItem.depth, m);
             this.mi++;
             let opts = {
                 n: `b-${this.mi}`,
                 x,
                 y: selectedItem.height / 2,
                 d: selectedItem.depth, w: selectedItem.width, h: selectedItem.height,
-                z: y
+                z
             };
-            selectedItem.colour[0] === '#' ? opts["b"] = selectedItem.colour : opts["t"] = pick(...selectedItem.colour);
+            selectedItem.colour[0] === '#' ? opts["b"] = selectedItem.colour : opts["t"] = selectedItem.colour;
             if (selectedItem.type === "cube") {
                 this.w["cube"](opts);
             }
@@ -120,6 +165,86 @@ class Map {
                 this.w["cube"](opts);
             }
         }
+
+        if (!selectedItem) {
+            const s = this.sl.find(s => s.x === x && s.z === z);
+            return s ? {
+                removeOthers: true,
+                popup: (ctx, ui, r) => {
+                    ctx.fillStyle = '#331111dd';
+                    ctx.strokeStyle = '#774444';
+                    ctx.fillRect(mX, mY - r(110), r(200), r(100));
+                    ctx.strokeRect(mX, mY - r(110), r(200), r(100));
+
+
+                    ctx.fillStyle = '#ffffff';
+                    ctx.font = `${r(10)}px luminari, fantasy`;
+                    ctx.fillText("Sin", mX + 10, mY - r(90));
+                    ctx.fillStyle = '#ffffff60';
+                    ctx.fillRect(mX + 10, mY - r(80), r(12), r(60));
+                    ctx.fillStyle = '#ff0000';
+                    ctx.fillRect(mX + 10, mY - r(80 - (60 - (s.sin * 6))), r(12), r(s.sin * 6)); //(sin * meterHeight) / maxSin
+                    ctx.strokeRect(mX + 10, mY - r(80), r(12), r(60));
+
+                    ctx.fillStyle = '#ffffff';
+                    ctx.fillText("Mis", mX + 32, mY - r(90));
+                    ctx.fillStyle = '#ffffff60';
+                    ctx.fillRect(mX + 32, mY - r(80), r(12), r(60));
+                    ctx.fillStyle = '#8800ff';
+                    ctx.fillRect(mX + 32, mY - r(80 - (60 - (s.misery * 6))), r(12), r(s.misery * 6)); //(sin * meterHeight) / maxSin
+                    ctx.strokeRect(mX + 32, mY - r(80), r(12), r(60));
+
+                    ctx.font = `${r(12)}px luminari, fantasy`;
+                    ctx.fillStyle = '#ffffff';
+                    ctx.fillText(s.honestyDesc, mX + 54, mY - r(70));
+                    ctx.fillText(s.strDesc, mX + 54, mY - r(55));
+
+                    ctx.fillStyle = ui.coordinatesMatchItem([mX + r(200 - 60), mY - r(40), r(20), r(20)], ui.x, ui.y) ? '#ff2222' : '#dd1111';
+                    ctx.fillRect(mX + r(200 - 60), mY - r(40), r(20), r(20));
+                    ctx.strokeRect(mX + r(200 - 60), mY - r(40), r(20), r(20));
+
+                    ctx.fillStyle = ui.coordinatesMatchItem([mX + r(200 - 30), mY - r(40), r(20), r(20)], ui.x, ui.y) ? '#22ff22' : '#11dd11';
+                    ctx.fillRect(mX + r(200 - 30), mY - r(40), r(20), r(20));
+                    ctx.strokeRect(mX + r(200 - 30), mY - r(40), r(20), r(20));
+
+                    if (this.is.includes(s) && !s.accepted) {
+                        const decbtn = {
+                            type: "soul-btn",
+                            belongsTo: `s-${s.id}`,
+                            pos: [mX + r(200 - 60), mY - r(40), r(20), r(20)],
+                            onClick: (x, y) => {
+                                setTimeout(() => {
+                                    this.is = this.is.filter(i => i !== s);
+                                    this.sl = this.sl.filter(i => i !== s);
+                                    this.w.delete(`s-${s.id}`, 100);
+                                }, 1000);
+                                s.markedForDeletion = true;
+                            }
+                        };
+                        const accbtn = {
+                            type: "soul-btn",
+                            belongsTo: `s-${s.id}`,
+                            pos: [mX + r(200 - 30), mY - r(40), r(20), r(20)],
+                            onClick: (x, y) => {
+                                this.is = this.is.filter(i => i.id !== s.id);
+                                s.z = 3;
+                                this.w.move({ n: `s-${s.id}`, z: 3, a: 250 });
+                                s.accepted = true;
+                                resources.soulsAccepted++;
+                                console.log("Accepting soul...");
+                            }
+                        };
+                        if (ui.worldItems.filter(i => i.type === "soul-btn").length === 0) {
+                            ui.worldItems.push(decbtn);
+                            ui.worldItems.push(accbtn);
+                        } else if (ui.worldItems.filter(i => i.type === "soul-btn" && i.belongsTo !== `s-${s.id}`).length > 0) {
+                            ui.worldItems = ui.worldItems.filter(i => i.type !== "soul-btn");
+                        }
+                    }
+                }
+            } : { removeOthers: true };
+        }
+        return;
     }
 
     doRightClicks() {
