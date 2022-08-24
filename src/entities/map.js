@@ -1,5 +1,6 @@
 import { astar, Graph } from '../utils/astar';
 import { int, pick } from '../utils/random-utils';
+import Demon from './demon';
 import resources from './resources';
 import Soul from './soul';
 
@@ -7,32 +8,35 @@ class Map {
     constructor(s, h, w) {
         this.s = s; //size
         this.m = []; //machines
-        this.mi = 0; //machine id iterator
+        this.mi = 1; //machine id iterator
+        this.dl = []; //demon list
+        this.dli = 1; //demon id iterator
         this.sl = []; //soul list
         this.is = []; //idle souls (waiting for approval)
-        this.sli = 0; //soul id iterator
+        this.sli = 1; //soul id iterator
         this.w = w; // w lib
+        this.mcc = []; // machines with changed colour
 
         this.map = [...new Array(s)].map((_, j) => [...new Array(s)].map((_, i) => {
             if (!i) {
-                return { h, t: hell1, r: pick(0, 90, 180, 270), b: pick("#661111", "#441111", "#330000"), o: null };
+                return { h, t: himg, r: pick(0, 90, 180, 270), b: pick("#661111", "#441111", "#330000"), o: null };
             }
             if (j === s - 1) {
-                return { h, t: hell1, r: pick(0, 90, 180, 270), b: pick("#661111", "#441111", "#330000"), o: null };
+                return { h, t: himg, r: pick(0, 90, 180, 270), b: pick("#661111", "#441111", "#330000"), o: null };
             }
             if (j < 4 && [(this.s / 2) + 1, this.s / 2, (this.s / 2) - 1].includes(i)) {
-                return { h: 0, t: bones1, r: pick(0, 90, 180, 270), b: "#aa3300", o: true };
+                return { h: 0, t: bimg, r: pick(0, 90, 180, 270), b: "#aa3300", o: true };
             }
             if (i === s - 1) {
-                return { h: 2, t: hell1, r: pick(0, 90, 180, 270), b: pick("#661111", "#441111", "#330000"), o: null };
+                return { h: 2, t: himg, r: pick(0, 90, 180, 270), b: pick("#661111", "#441111", "#330000"), o: null };
             }
             if (!j) {
-                return { h: 2, t: hell1, r: pick(0, 90, 180, 270), b: pick("#661111", "#441111", "#330000"), o: null };
+                return { h: 2, t: himg, r: pick(0, 90, 180, 270), b: pick("#661111", "#441111", "#330000"), o: null };
             }
-            return { h: 0, t: hell1, r: pick(0, 90, 180, 270), b: pick("#661111", "#441111", "#330000"), o: null };
+            return { h: 0, t: himg, r: pick(0, 90, 180, 270), b: pick("#661111", "#441111", "#330000"), o: null };
         }));
 
-        this.graph = new Graph(this.map.map(col => col.map(c => !c.o ? 999 : (c.o.name === "Path" ? 1 : 25))));
+        this.graph = new Graph(this.map.map(col => col.map(c => !c.o ? 999 : (c.o.n === "Path" ? 1 : 25))));
     }
 
     freeSoulSpot() {
@@ -47,56 +51,68 @@ class Map {
         if (this.is.length < 3) {
             const [x, z] = this.freeSoulSpot();
             const s = new Soul(this.sli, x, z);
-            console.log(`Spawning soul ${s.id} at (${s.x},${s.z})`);
             this.sl.push(s);
             this.is.push(s);
             this.sli++;
 
-            this.w.plane({ n: `s-${s.id}`, x: s.x, y: 1, z: s.z, h: 2, w: 1, ry: 135, t: soul });
+            this.w.plane({ n: `s-${s.id}`, x: s.x, y: 1, z: s.z, h: 2, w: 1, ry: 135, t: simg });
         }
     }
 
     updateMachines() {
-        this.m.forEach(i => i.m.updateSouls());
+        this.m.forEach(i => i.m.ups());
     }
 
-    moveSouls() {
-        this.sl.forEach(s => {
-            if (s.accepted) {
-                s.findGoal(this.m);
-                if (s.goal && s.goal.m.soul && s.goal.m.soul !== s) {
-                    s.goal = null;
+    /**
+     * Update Souls
+     */
+    ups() {
+        this.sl.forEach((s,i) => {
+            if (s.a && !s.d) {
+                s.fg(this.m);
+                if (s.g && s.g.m.s && s.g.m.s !== s) {
+                    s.g = null;
+                    s.p = astar.s(this.graph, this.graph.g[s.z, s.x], this.graph.g[int(1, this.s - 2), int(1, this.s - 2)]);
                 }
-                if (s.goal && !s.isMoving && s.path.length === 0) {
-                    s.path = astar.search(this.graph, this.graph.get(s.x, s.z), this.graph.get(s.goal.x, s.goal.z));
-                    console.log(s.path);
+                if (s.g && !s.im && s.p.length === 0) {
+                    s.p = astar.s(this.graph, this.graph.g[s.z, s.x], this.graph.g[s.g.z, s.g.x]);
+                    // console.log(s.p);
                 }
-                if (!s.isMoving && s.path.length > 0) {
+                if (!s.im && s.p.length > 0) {
                     this.w.move({
                         n: `s-${s.id}`,
-                        x: s.path[0].x,
-                        z: s.path[0].y,
-                        a: 100,
+                        x: s.p[0].x,
+                        z: s.p[0].y,
+                        a: s.p[0].w === 999 ? 500 : 100,
                     });
-                    s.isMoving = true;
+                    s.im = true;
                     setTimeout(() => {
-                        s.x = s.path[0].x;
-                        s.z = s.path[0].y;
-                        s.path = s.path.slice(1);
-                        s.isMoving = false;
-                        if (s.path.length === 0 && s.goal) {
-                            s.goal.m.soul = s;
-                            s.goal = null;
+                        s.x = s.p[0].x;
+                        s.z = s.p[0].y;
+                        s.p = s.p.slice(1);
+                        s.im = false;
+                        if (s.p.length === 0 && s.g) {
+                            s.g.m.s = s;
+                            s.g = null;
                         }
-                    }, 100);
+                    }, s.p[0].w === 999 ? 500 : 100);
                 }
             }
+            if (s.d) {
+                if (s.g && s.g.m.s === s) {
+                    s.g = null;
+                }
+                setTimeout(() => {
+                    this.w.delete(`s-${s.id}`);
+                }, 500);
+            }
         });
+        this.sl = this.sl.filter(s => !s.d);
     }
 
-    animateSouls(offset) {
+    anim(offset) {
         this.sl.forEach((s, i) => {
-            if (!s.markedForDeletion) {
+            if (!s.d) {
                 this.w.move({ n: `s-${s.id}`, y: 1 + offset, a: 250 }, (i % 5) * 100);
             }
         });
@@ -122,41 +138,41 @@ class Map {
                 this.map[j][i].o = m;
             }
         }
-
-        this.graph = new Graph(this.map.map(col => col.map(c => !c.o ? 999 : (c.o.name === "Path" ? 1 : 25))));
+        resources.c -= m.c;
+        this.graph = new Graph(this.map.map(col => col.map(c => !c.o ? 999 : (c.o.n === "Path" ? 1 : 25))));
     }
 
-    doClicks(selectedItem, x, z, inMapArea, isDragging, startX, startZ, mX, mY) {
-        this.w.delete("placement");
+    doClicks(selectedItem, selectedDemon, x, z, inMapArea, isDragging, startX, startZ, mX, mY) {
+        this.w.delete("pl");
         if (!inMapArea) {
             return;
         }
-        if (isDragging && selectedItem && selectedItem.type === "plane") {
+        if (isDragging && selectedItem && selectedItem.t === "plane") {
             for (let j = Math.min(z, startZ); j <= Math.max(z, startZ); j++) {
                 for (let i = Math.min(x, startX); i <= Math.max(x, startX); i++) {
-                    this.doClicks(selectedItem, i, j, inMapArea);
+                    this.doClicks(selectedItem, selectedDemon, i, j, inMapArea);
                 }
             }
             return;
         }
 
-        if (selectedItem && !this.isAreaOccupied(x, z, selectedItem.width, selectedItem.depth)) {
+        if (selectedItem && !this.isAreaOccupied(x, z, selectedItem.w, selectedItem.d) && selectedItem.c <= resources.c) {
             const m = selectedItem.clone(this.mi);
             this.m.push({ m, x, z });
-            this.addToArea(x, z, selectedItem.width, selectedItem.depth, m);
+            this.addToArea(x, z, selectedItem.w, selectedItem.d, m);
             this.mi++;
             let opts = {
-                n: `b-${this.mi}`,
+                n: `b-${m.id}`,
                 x,
-                y: selectedItem.height / 2,
-                d: selectedItem.depth, w: selectedItem.width, h: selectedItem.height,
+                y: selectedItem.h / 2,
+                d: selectedItem.d, w: selectedItem.w, h: selectedItem.h,
                 z
             };
-            selectedItem.colour[0] === '#' ? opts["b"] = selectedItem.colour : opts["t"] = selectedItem.colour;
-            if (selectedItem.type === "cube") {
+            selectedItem.co[0] === '#' ? opts["b"] = selectedItem.co : opts["t"] = selectedItem.co;
+            if (selectedItem.t === "cube") {
                 this.w["cube"](opts);
             }
-            if (selectedItem.type === "plane") {
+            if (selectedItem.t === "plane") {
                 opts["y"] = 0;
                 opts["h"] = 0.1;
                 opts["b"] = "#00000000";
@@ -166,7 +182,16 @@ class Map {
             }
         }
 
-        if (!selectedItem) {
+        if (selectedDemon && this.map[z][x].o && this.map[z][x].o !== true && this.map[z][x].o.t !== "plane" && selectedDemon.mc <= resources.m) {
+            if (!this.map[z][x].o.do) {
+                this.map[z][x].o.do = selectedDemon.clone(this.dli);
+                this.dli++;
+                resources.dl = resources.dl.map(d => d === selectedDemon ? new Demon() : d);
+                return { removeSelectedDemon: true };
+            }
+        }
+
+        if (!selectedItem && !selectedDemon) {
             const s = this.sl.find(s => s.x === x && s.z === z);
             return s ? {
                 removeOthers: true,
@@ -183,7 +208,7 @@ class Map {
                     ctx.fillStyle = '#ffffff60';
                     ctx.fillRect(mX + 10, mY - r(80), r(12), r(60));
                     ctx.fillStyle = '#ff0000';
-                    ctx.fillRect(mX + 10, mY - r(80 - (60 - (s.sin * 6))), r(12), r(s.sin * 6)); //(sin * meterHeight) / maxSin
+                    ctx.fillRect(mX + 10, mY - r(80 - (60 - (s.s * 6))), r(12), r(s.s * 6)); //(sin * meterHeight) / maxSin
                     ctx.strokeRect(mX + 10, mY - r(80), r(12), r(60));
 
                     ctx.fillStyle = '#ffffff';
@@ -191,54 +216,59 @@ class Map {
                     ctx.fillStyle = '#ffffff60';
                     ctx.fillRect(mX + 32, mY - r(80), r(12), r(60));
                     ctx.fillStyle = '#8800ff';
-                    ctx.fillRect(mX + 32, mY - r(80 - (60 - (s.misery * 6))), r(12), r(s.misery * 6)); //(sin * meterHeight) / maxSin
+                    ctx.fillRect(mX + 32, mY - r(80 - (60 - (s.m * 6))), r(12), r(s.m * 6)); //(sin * meterHeight) / maxSin
                     ctx.strokeRect(mX + 32, mY - r(80), r(12), r(60));
 
                     ctx.font = `${r(12)}px luminari, fantasy`;
                     ctx.fillStyle = '#ffffff';
-                    ctx.fillText(s.honestyDesc, mX + 54, mY - r(70));
-                    ctx.fillText(s.strDesc, mX + 54, mY - r(55));
+                    ctx.fillText(s.desch, mX + 54, mY - r(70));
+                    ctx.fillText(s.descs, mX + 54, mY - r(55));
 
-                    ctx.fillStyle = ui.coordinatesMatchItem([mX + r(200 - 60), mY - r(40), r(20), r(20)], ui.x, ui.y) ? '#ff2222' : '#dd1111';
+                    ctx.fillText(`Coins: ${s.c}`, mX + 54, mY - r(23));
+
+                    ctx.fillStyle = ui.cmi([mX + r(200 - 60), mY - r(40), r(20), r(20)], ui.x, ui.y) ? '#ff2222' : '#dd1111';
                     ctx.fillRect(mX + r(200 - 60), mY - r(40), r(20), r(20));
                     ctx.strokeRect(mX + r(200 - 60), mY - r(40), r(20), r(20));
 
-                    ctx.fillStyle = ui.coordinatesMatchItem([mX + r(200 - 30), mY - r(40), r(20), r(20)], ui.x, ui.y) ? '#22ff22' : '#11dd11';
+                    ctx.fillStyle = ui.cmi([mX + r(200 - 30), mY - r(40), r(20), r(20)], ui.x, ui.y) ? '#22ff22' : '#11dd11';
                     ctx.fillRect(mX + r(200 - 30), mY - r(40), r(20), r(20));
                     ctx.strokeRect(mX + r(200 - 30), mY - r(40), r(20), r(20));
 
-                    if (this.is.includes(s) && !s.accepted) {
+                    if (this.is.includes(s) && !s.a) {
                         const decbtn = {
-                            type: "soul-btn",
-                            belongsTo: `s-${s.id}`,
+                            t: "soul-btn", // type
+                            bt: `s-${s.id}`, //belongs to
                             pos: [mX + r(200 - 60), mY - r(40), r(20), r(20)],
                             onClick: (x, y) => {
                                 setTimeout(() => {
                                     this.is = this.is.filter(i => i !== s);
                                     this.sl = this.sl.filter(i => i !== s);
                                     this.w.delete(`s-${s.id}`, 100);
+                                    resources.sd++;
                                 }, 1000);
-                                s.markedForDeletion = true;
+                                s.isDead = true;
+                                return { pp: true };
                             }
                         };
                         const accbtn = {
-                            type: "soul-btn",
-                            belongsTo: `s-${s.id}`,
+                            t: "soul-btn", // type
+                            bt: `s-${s.id}`,
                             pos: [mX + r(200 - 30), mY - r(40), r(20), r(20)],
                             onClick: (x, y) => {
                                 this.is = this.is.filter(i => i.id !== s.id);
                                 s.z = 3;
                                 this.w.move({ n: `s-${s.id}`, z: 3, a: 250 });
-                                s.accepted = true;
-                                resources.soulsAccepted++;
-                                console.log("Accepting soul...");
+                                s.a = true;
+                                resources.sa++;
+                                resources.c += s.c;
+                                return { pp: true };
                             }
                         };
-                        if (ui.worldItems.filter(i => i.type === "soul-btn").length === 0) {
-                            ui.worldItems.push(decbtn);
-                            ui.worldItems.push(accbtn);
-                        } else if (ui.worldItems.filter(i => i.type === "soul-btn" && i.belongsTo !== `s-${s.id}`).length > 0) {
-                            ui.worldItems = ui.worldItems.filter(i => i.type !== "soul-btn");
+                        if (ui.wi.filter(i => i.t === "soul-btn").length === 0) {
+                            ui.wi.push(decbtn);
+                            ui.wi.push(accbtn);
+                        } else if (ui.wi.filter(i => i.t === "soul-btn" && i.bt !== `s-${s.id}`).length > 0) {
+                            ui.wi = ui.wi.filter(i => i.t !== "soul-btn");
                         }
                     }
                 }
@@ -248,33 +278,38 @@ class Map {
     }
 
     doRightClicks() {
-        this.w.delete("placement");
+        this.w.delete("pl");
     }
 
-    doHovers(selectedItem, x, z, inMapArea, isDragging, startX, startZ) {
+    doHovers(selectedItem, selectedDemon, x, z, inMapArea, isDragging, startX, startZ) {
         if (inMapArea) {
-            if (selectedItem && selectedItem.type === "cube") {
+            if (selectedItem && selectedItem.t === "cube") {
                 this.w["cube"]({
-                    n: "placement",
+                    n: "pl",
                     x,
-                    y: selectedItem.height / 2,
+                    y: selectedItem.h / 2,
                     z,
-                    d: selectedItem.depth,
-                    w: selectedItem.width,
-                    h: selectedItem.height,
-                    b: this.isAreaOccupied(x, z, selectedItem.width, selectedItem.depth) ? "#ff000060" : "#aaaa0050"
+                    d: selectedItem.d,
+                    w: selectedItem.w,
+                    h: selectedItem.h,
+                    b: this.isAreaOccupied(x, z, selectedItem.w, selectedItem.d) || resources.c < selectedItem.c ? "#ff000060" : "#aaaa0050"
                 });
             }
-            if (selectedItem && selectedItem.type === "plane") {
+            if (selectedItem && selectedItem.t === "plane") {
                 this.w["cube"]({
-                    n: "placement",
+                    n: "pl",
                     x: isDragging ? ((x < startX ? startX : x) - Math.abs(x - startX) / 2) : x,
                     y: 0,
                     z: isDragging ? ((z < startZ ? startZ : z) - Math.abs(z - startZ) / 2) : z,
-                    w: isDragging ? Math.floor(x < startX ? startX - x : x - startX) + selectedItem.width : selectedItem.width,
-                    d: isDragging ? Math.floor(z < startZ ? startZ - z : z - startZ) + selectedItem.width : selectedItem.width,
+                    w: isDragging ? Math.floor(x < startX ? startX - x : x - startX) + selectedItem.w : selectedItem.w,
+                    d: isDragging ? Math.floor(z < startZ ? startZ - z : z - startZ) + selectedItem.w : selectedItem.w,
                     h: 0.1,
-                    b: this.isAreaOccupied(x, z, selectedItem.width, selectedItem.depth) && !isDragging ? "#ff000060" : "#aaaa0050"
+                    b: this.isAreaOccupied(x, z, selectedItem.w, selectedItem.d) && !isDragging ||
+                        (isDragging ?
+                            resources.c < selectedItem.c * ((Math.floor(x < startX ? startX - x : x - startX) + selectedItem.w) * (Math.floor(z < startZ ? startZ - z : z - startZ) + selectedItem.w)) :
+                            resources.c < selectedItem.c) ?
+                        "#ff000060" :
+                        "#aaaa0050"
                 });
             }
             if (!selectedItem) {
@@ -286,9 +321,22 @@ class Map {
                     w: this.scale,
                     d: this.scale,
                     h: 0.1,
-                    t: selector
+                    b: selectedDemon ? "#000000ff" : "#ffffffaa"
                 });
             }
+        }
+        if (selectedDemon && this.map[z][x] && this.map[z][x].o && this.map[z][x].o !== true && this.map[z][x].o.t !== "plane") {
+            if (!this.mcc.includes(this.map[z][x].o.id)) {
+                this.mcc.push(this.map[z][x].o);
+            }
+            if (this.map[z][x].o.do) {
+                this.w.move({ n: `b-${this.map[z][x].o.id}`, b: "ff000060", mix: 1 });
+            } else {
+                this.w.move({ n: `b-${this.map[z][x].o.id}`, b: "00ff0060", mix: 1 });
+            }
+        } else {
+            this.mcc.forEach(m => this.w.move({ n: `b-${m.id}`, b: m.co, mix: 1 }));
+            this.mcc = [];
         }
     }
 

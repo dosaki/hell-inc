@@ -1,37 +1,33 @@
 class Machine {
-    constructor(name, cost, needsDemon, miseryPerTick, requiredLevel, colour, type, width, depth, height, id) {
+    constructor(n, cost, needsDemon, miseryPerTick, requiredLevel, colour, type, width, depth, height, id) {
         this.id = id || null;
-        this.name = name;
-        this.cost = cost;
-        this.needsDemon = needsDemon;
-        this.demonOperator = null;
-        this._miseryPerTick = miseryPerTick;
-        this.requiredLevel = requiredLevel;
-        this.type = type;
-        this.width = width || 0;
-        this.depth = depth || 0;
-        this.height = height || 0;
-        this.colour = colour;
-        this.soul = null;
+        this.n = n;
+        this.c = cost;
+        this.nd = needsDemon;
+        this.do = null;
+        this._mt = miseryPerTick;
+        this.rl = requiredLevel;
+        this.t = type;
+        this.w = width || 0;
+        this.d = depth || 0;
+        this.h = height || 0;
+        this.co = colour;
+        this.s = null; // soul
     }
 
-    updateSouls () {
-        if(this._miseryPerTick && this.soul) {
-            return this.soul.suffer(this.miseryPerTick);
+    /**
+     * Update Souls
+     * @returns 
+     */
+    ups () {
+        if((!this.nd || this.do) && this._mt && this.s) {
+            return this.s.su((!this.nd || this.do) ? this._mt * (this.do ? this.do.mb : 1) : 0);
         }
         return null;
     }
 
-    get isFunctional() {
-        return !this.needsDemon || this.demonOperator;
-    }
-
-    get miseryPerTick() {
-        return this.isFunctional ? this._miseryPerTick * (this.demonOperator ? this.demonOperator.miseryExtractionBonus : 1) : 0;
-    }
-
     clone(id) {
-        return new Machine(this.name, this.cost, this.needsDemon, this.miseryPerTick, this.requiredLevel, this.colour, this.type, this.width, this.depth, this.height, id);
+        return new Machine(this.n, this.c, this.nd, this._mt, this.rl, this.co, this.t, this.w, this.d, this.h, id);
     }
 }
 export default Machine;

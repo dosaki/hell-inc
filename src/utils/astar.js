@@ -20,7 +20,7 @@ BinaryHeap.prototype = {
         this.content.push(element);
 
         // Allow it to sink down.
-        this.sinkDown(this.content.length - 1);
+        this.sd(this.content.length - 1);
     },
     pop: function () {
         // Store the first element so we can return it later.
@@ -31,7 +31,7 @@ BinaryHeap.prototype = {
         // start, and let it bubble up.
         if (this.content.length > 0) {
             this.content[0] = end;
-            this.bubbleUp(0);
+            this.bu(0);
         }
         return result;
     },
@@ -46,13 +46,13 @@ BinaryHeap.prototype = {
             this.content[i] = end;
 
             if (this.scoreFunction(end) < this.scoreFunction(node)) {
-                this.sinkDown(i);
+                this.sd(i);
             } else {
-                this.bubbleUp(i);
+                this.bu(i);
             }
         }
     },
-    sinkDown: function (n) {
+    sd: function (n) {
         // Fetch the element that has to be sunk.
         var element = this.content[n];
 
@@ -75,7 +75,7 @@ BinaryHeap.prototype = {
             }
         }
     },
-    bubbleUp: function (n) {
+    bu: function (n) {
         // Look up the target element and its score.
         var length = this.content.length;
         var element = this.content[n];
@@ -142,7 +142,7 @@ export var astar = {
     * @param {GridNode} start
     * @param {GridNode} end
     */
-    search: function (graph, start, end) {
+    s: function (graph, start, end) {
         graph.clean(graph.dirtyNodes);
         this.dirtyNodes = [];
 
@@ -173,14 +173,14 @@ export var astar = {
             for (var i = 0, il = neighbors.length; i < il; ++i) {
                 var neighbor = neighbors[i];
 
-                if (neighbor.closed || (neighbor.weight === 0)) {
+                if (neighbor.closed || (neighbor.w === 0)) {
                     // Not a valid node to process, skip to next neighbor.
                     continue;
                 }
 
                 // The g score is the shortest distance from start to current node.
                 // We need to check if the path we have arrived at this neighbor is the shortest one we have seen yet.
-                var gScore = currentNode.g + neighbor.getCost(currentNode);
+                var gScore = currentNode.g + neighbor.w;
                 var beenVisited = neighbor.visited;
 
                 if (!beenVisited || gScore < neighbor.g) {
@@ -201,7 +201,7 @@ export var astar = {
                         openHeap.push(neighbor);
                     } else {
                         // Already seen the node, but since it has been rescored we need to reorder it in the heap
-                        openHeap.sinkDown(openHeap.content.indexOf(neighbor));
+                        openHeap.sd(openHeap.content.indexOf(neighbor));
                     }
                 }
             }
@@ -216,23 +216,19 @@ export var astar = {
  * @param {Array} gridIn 2D array of input weights
  */
 export function Graph(gridIn) {
-    this.nodes = [];
-    this.grid = [];
+    this.n = [];
+    this.g = [];
     for (var y = 0; y < gridIn.length; y++) {
-        this.grid[y] = [];
+        this.g[y] = [];
         for (var x = 0; x < gridIn[y].length; x++) {
             var node = new GridNode(x, y, gridIn[y][x]);
-            this.grid[y][x] = node;
-            this.nodes.push(node);
+            this.g[y][x] = node;
+            this.n.push(node);
         }
     }
     this.dirtyNodes = [];
-    this.clean(this.nodes);
+    this.clean(this.n);
 }
-
-Graph.prototype.get = function (x, y) {
-    return this.grid[y][x];
-};
 
 Graph.prototype.clean = function (nodes) {
     for (var i = 0; i < nodes.length; i++) {
@@ -249,38 +245,30 @@ Graph.prototype.neighbors = function (node) {
     var ret = [];
 
     // West
-    if (this.grid[node.y - 1] && this.grid[node.y - 1][node.y]) {
-        ret.push(this.grid[node.y - 1][node.x]);
+    if (this.g[node.y - 1] && this.g[node.y - 1][node.y]) {
+        ret.push(this.g[node.y - 1][node.x]);
     }
 
     // East
-    if (this.grid[node.y + 1] && this.grid[node.y + 1][node.x]) {
-        ret.push(this.grid[node.y + 1][node.x]);
+    if (this.g[node.y + 1] && this.g[node.y + 1][node.x]) {
+        ret.push(this.g[node.y + 1][node.x]);
     }
 
     // South
-    if (this.grid[node.y] && this.grid[node.y][node.x - 1]) {
-        ret.push(this.grid[node.y][node.x - 1]);
+    if (this.g[node.y] && this.g[node.y][node.x - 1]) {
+        ret.push(this.g[node.y][node.x - 1]);
     }
 
     // North
-    if (this.grid[node.y] && this.grid[node.y][node.x + 1]) {
-        ret.push(this.grid[node.y][node.x + 1]);
+    if (this.g[node.y] && this.g[node.y][node.x + 1]) {
+        ret.push(this.g[node.y][node.x + 1]);
     }
 
     return ret;
 };
 
-function GridNode(x, y, weight) {
+function GridNode(x, y, w) {
     this.x = x;
     this.y = y;
-    this.weight = weight;
+    this.w = w;
 }
-
-GridNode.prototype.getCost = function (fromNeighbor) {
-    // Take diagonal weight into consideration.
-    if (fromNeighbor && fromNeighbor.x != this.x && fromNeighbor.y != this.y) {
-        return this.weight * 1.41421;
-    }
-    return this.weight;
-};

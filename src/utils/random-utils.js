@@ -1,11 +1,10 @@
 module.exports = {};
 
 module.exports.pick = (...args) => {
-    if (args.length === 0) {
+    if (!args.length) {
         return null;
     }
-    const nr = module.exports.int(0, args.length - 1);
-    return args[nr];
+    return args[module.exports.int(0, args.length - 1)];
 };
 
 /**

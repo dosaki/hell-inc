@@ -3,60 +3,64 @@ import { int, pick } from '../utils/random-utils';
 class Soul {
     constructor(id, x, z) {
         this.id = id;
-        this._sin = int(0, 10);
-        this.gender = pick("male", "female");
-        this.colour = pick("#ffff00", "#ff00ff", "#00ffff", "#ff0000", "#00ff00", "#0000ff");
-        this.coins = int(0, 5);
-        this.misery = 0;
-        this.chanceOfBeingDestroyed = int(10, 50);
-        this.honesty = int(0, 10 - this._sin); //influences how much they report the level of sin
+        this._s = int(0, 10); //sin
+        this.c = int(0, 5); // coins
+        this.m = 0; // misery
+        this.cod = int(5, 35); // chance of being destroyed
+        this.h = int(0, 10 - this._s); // honesty - influences how much they report the level of sin
         this.x = x;
         this.z = z;
-        this.sin = Math.round((this._sin * this.honesty + int(0, 10) * (10 - this.honesty)) * 0.05);
-        this.accepted = false;
-        this.goal = null;
-        this.lastSelectedAGoal = 0;
-        this.path = [];
-        console.log(`_sin: ${this._sin}, honesty: ${this.honesty}, sin: ${this.sin}`);
+        this.s = Math.round((this._s * this.h + int(0, 10) * (10 - this.h)) * 0.05); // sin filtered by honesty 
+        this.a = false; // accepted
+        this.g = null; // goal
+        this.lg = 0; // last selected a goal
+        this.p = []; // path to goal
+        this.d = false; // is dead
+        this.im = false; // is moving
     }
 
-    shouldDie() {
-        return int(0, 100) < (this.chanceOfBeingDestroyed + this.misery * 0.5);
-    }
-
-    suffer(misery) {
-        this.misery += misery + (10 - this._sin) * 0.05;
-        console.log("Suffering...", this.misery)
-        return this.shouldDie();
-    }
-
-    findGoal(machines) {
-        if (new Date().getTime() - this.lastSelectedAGoal >= 5000) {
-            if (!this.goal && this.misery < 10) {
-                this.goal = pick(...machines.filter(m => m.m.isFunctional && m.m.type !== "plane" && m.m.name !== "Misery Extractor" && !m.m.soul));
-            }
-            if (this.misery >= 10) {
-                if(this.goal){
-                    this.goal.m.soul = null;
-                }
-                this.goal = pick(...machines.filter(m => m.m.isFunctional && m.m.name === "Misery Extractor" && !m.m.soul));
-            }
-            this.lastSelectedAGoal = new Date().getTime();
+    /**
+     * Suffer
+     * @param {*} misery 
+     */
+    su(misery) {
+        if (!this.d) {
+            this.m += Math.floor(misery + (10 - this._s) * 0.2);
+            this.d = int(0, 100) < (this.cod + this.m * 0.1);
         }
     }
 
-    get honestyDesc() {
-        return [this.gender === "male" ? 'He' : 'She',
-        this.honesty < 3 ? "seems dishonest" :
-            this.honesty < 5 ? "seems a bit dishonest" :
-                this.honesty < 7 ? "seems honest enough" :
-                    "seems honest"].join(" ");
+    /**
+     * Find Goal
+     * @param {*} machines 
+     */
+     fg(machines) {
+        if (new Date().getTime() - this.lg >= 5000) {
+            if (!this.g && this.m < 10) {
+                this.g = pick(...machines.filter(m => (!m.m.nd || m.m.do) && m.m.t !== "plane" && m.m.n !== "Misery Extractor" && !m.m.s));
+            }
+            if (this.m >= 10) {
+                if (this.g) {
+                    this.g.m.s = null;
+                }
+                this.g = pick(...machines.filter(m => (!m.m.nd || m.m.do) && m.m.n === "Misery Extractor" && !m.m.s));
+            }
+            this.lg = new Date().getTime();
+        }
     }
 
-    get strDesc() {
-        return this.chanceOfBeingDestroyed < 15 ? "and strong willed" :
-            this.chanceOfBeingDestroyed < 25 ? "and sturdy" :
-                this.chanceOfBeingDestroyed < 38 ? "and sensitive" :
+    get desch() { // honesty description
+        return ["They",
+        this.h < 3 ? "seem dishonest" :
+            this.h < 5 ? "seem a bit dishonest" :
+                this.h < 7 ? "seem honest enough" :
+                    "seem honest"].join(" ");
+    }
+
+    get descs() { // soul strength description
+        return this.cod < 7 ? "and strong willed" :
+            this.cod < 15 ? "and sturdy" :
+                this.cod < 25 ? "and sensitive" :
                     "and very weak";
     }
 }

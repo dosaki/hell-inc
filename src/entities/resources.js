@@ -3,14 +3,14 @@ import Machine from './machine';
 
 class Resources {
     constructor() {
-        this.misery = 0;
-        this.coins = 20;
-        this.soulsAccepted = 0;
-        this.soulsDeclined = 0;
-        this.soulsExtracted = 0;
-        this.demonsToHire = [new Demon(), new Demon(), new Demon(), new Demon()];
-        this.machines = [
-            new Machine("Path", 3, false, 0, 1, bones1, "plane", 1, 1),
+        this.m = 5; // misery
+        this.c = 20; // cost
+        this.sa = 0; // souls accepted
+        this.sd = 0; // souls declined
+        this.se = 0; // souls extracted
+        this.dl = [new Demon(null, null, null, 0.85), new Demon(), new Demon(), new Demon()]; // demons to hire list
+        this.ml = [ // machines list
+            new Machine("Path", 3, false, 0, 1, bimg, "plane", 1, 1),
             new Machine("Misery Extractor", 5, true, 0, 1, "#4466aa", "cube", 3, 3, 5),
             new Machine("Dispair Room", 10, false, 1, 1, "#440099", "cube", 5, 5, 8),
             new Machine("Iron Maiden", 25, true, 5, 2, "#886666", "cube", 2, 1, 2),
@@ -20,28 +20,8 @@ class Resources {
         ];
     }
 
-    get currentLevel() {
-        return Math.floor(Math.sqrt(this.soulsExtracted + 15) / Math.sqrt(10));
-    }
-
-    get activeMachines() {
-        return this.machines.filter(m => m.requiredLevel <= this.currentLevel);
-    }
-
-    reset() {
-        this.misery = 0;
-        this.coins = 0;
-        this.soulsAccepted = 0;
-        this.soulsExtracted = 0;
-        this.demonsToHire = [new Demon(), new Demon(), new Demon(), new Demon()];
-        this.machines = [];
-    }
-    refreshDemons() {
-        this.demonsToHire = [new Demon(), new Demon(), new Demon(), new Demon()];
-    }
-
-    addNewDemon() {
-        this.demonsToHire = [...this.demonsToHire.slice(1), new Demon()];
+    get l() { // level
+        return Math.floor(Math.sqrt(this.se + 15) / Math.sqrt(10));
     }
 }
 let resources = new Resources();

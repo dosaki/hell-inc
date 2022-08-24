@@ -1,15 +1,13 @@
 import Map from './entities/map';
 import ui from './ui/ui';
 import { int } from './utils/random-utils';
-const SIZE = 50;
-const SCALE = 1;
 const W = window.W;
-const gameCanvas = document.querySelector('[game]');
-window.DEBUG = true;
+const gameCanvas = document.querySelector('[g]');
+
 gameCanvas.oncontextmenu = (e) => { e.preventDefault(); e.stopPropagation(); };
 gameCanvas.width = Math.min(window.innerWidth, window.innerHeight);
 gameCanvas.height = gameCanvas.width;
-ui.size = gameCanvas.width;
+ui.s = gameCanvas.width;
 W.reset(gameCanvas);
 W.light({ x: -0.2, y: -1, z: 0.6 });
 W.ambient(0.1);
@@ -25,7 +23,7 @@ const ortho = (value, near, far) => {
 };
 const screenToWorld = (x, y) => W.v.inverse().multiply(W.projection).transformPoint(new DOMPoint(90 * x - 45, 1, 180 * y - 134));
 
-const map = new Map(SIZE, 20, W);
+const map = new Map(50, 20, W);
 let mX = null;
 let mY = null;
 let wX = null;
@@ -52,7 +50,7 @@ uiCanvas.addEventListener("mousemove", (e) => {
 
     if (mX && mY) {
         if (!ui.doHovers(mX, mY, uiCtx.canvas.height)) {
-            map.doHovers(ui.selectedItem, wX, wY, ui.inMapArea, isDragging, swX, swY);
+            map.doHovers(ui.si, ui.sd, wX, wY, ui.ma, isDragging, swX, swY);
         }
     }
 });
@@ -61,9 +59,10 @@ uiCanvas.addEventListener("click", (e) => {
 
     if (mX && mY) {
         if (!ui.doClicks(mX, mY)) {
-            const r = map.doClicks(ui.selectedItem, wX, wY, ui.inMapArea, isDragging, swX, swY, mX, mY);
-            r && r.removeOthers ? ui.worldPopUps = [] : "";
-            r && r.popup ? ui.worldPopUps.push(r.popup) : "";
+            const r = map.doClicks(ui.si, ui.sd, wX, wY, ui.ma, isDragging, swX, swY, mX, mY);
+            r && r.removeOthers ? ui.wpu = [] : "";
+            r && r.popup ? ui.wpu.push(r.popup) : "";
+            r && r.removeSelectedDemon ? ui.sd = null : "";
         }
         eventType === null;
     }
@@ -81,7 +80,7 @@ uiCanvas.addEventListener("mouseout", () => {
 uiCanvas.oncontextmenu = (e) => {
     e.preventDefault(); e.stopPropagation();
     eventType = "rightClick";
-    ui.worldPopUps = [];
+    ui.wpu = [];
 
     if (mX && mY) {
         ui.doRightClicks(mX, mY);
@@ -100,7 +99,7 @@ window.speed = 1;
 //     console.log(`Godmode: ${!canLose}`);
 // };
 setTimeout(() => {
-    map.drawMap(SCALE);
+    map.drawMap(1);
     W.projection = ortho(45, 1, 999);
     W.camera({ x: 50, y: 32, z: 0, rx: -45, ry: 135 });
     map.spawnSoul();
@@ -108,7 +107,7 @@ setTimeout(() => {
 
 let goUp = true;
 setInterval(() => {
-    map.animateSouls(goUp ? 0.3 : -0.3);
+    map.anim(goUp ? 0.3 : -0.3);
     goUp = !goUp;
 }, 250);
 
@@ -117,8 +116,8 @@ const main = function (t) {
     if (int(0, 500) >= 495) {
         map.spawnSoul();
     }
-    map.moveSouls();
-    if (t - lastUpdate >= 500) {
+    map.ups();
+    if (t - lastUpdate >= 1000) {
         map.updateMachines();
         lastUpdate = t;
     }
