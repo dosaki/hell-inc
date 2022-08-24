@@ -15,6 +15,8 @@ class Machine {
         this.s = null; // soul
     }
 
+    // is functional: !this.nd || this.do
+
     /**
      * Update Souls
      * @returns 

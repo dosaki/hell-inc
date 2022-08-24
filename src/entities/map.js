@@ -67,7 +67,7 @@ class Map {
      * Update Souls
      */
     ups() {
-        this.sl.forEach((s,i) => {
+        this.sl.forEach((s, i) => {
             if (s.a && !s.d) {
                 s.fg(this.m);
                 if (s.g && s.g.m.s && s.g.m.s !== s) {
@@ -136,6 +136,7 @@ class Map {
         for (let j = y - Math.floor(depth / 2); j <= y + Math.floor(depth / 2); j++) {
             for (let i = x - Math.floor(width / 2); i <= x + Math.floor(width / 2); i++) {
                 this.map[j][i].o = m;
+                this.w.move({ n: `${j+1}-${i+1}`, b: "#000000", mix: 0.5 });
             }
         }
         resources.c -= m.c;
@@ -192,87 +193,107 @@ class Map {
         }
 
         if (!selectedItem && !selectedDemon) {
+            if (this.map[z][x].o !== true && this.map[z][x].o) {
+                return {
+                    removeOthers: true,
+                    popup: (ctx, ui, r) => {
+                        ctx.fillStyle = '#331111dd';
+                        ctx.strokeStyle = '#774444';
+                        ctx.fillRect(mX, mY - r(110), r(200), r(100));
+                        ctx.strokeRect(mX, mY - r(110), r(200), r(100));
+
+                        ctx.fillStyle = this.map[z][x].o.nd && !this.map[z][x].o.do ? '#ff0000' : '#00ff00';
+                        ctx.font = `${r(16)}px luminari, fantasy`;
+                        ctx.fillText("⬤", mX + 10, mY - r(85));
+                        ctx.fillStyle = '#ffffff';
+                        ctx.font = `${r(14)}px luminari, fantasy`;
+                        ctx.fillText(this.map[z][x].o.n, mX + 30, mY - r(85));
+                    }
+                };
+            }
             const s = this.sl.find(s => s.x === x && s.z === z);
-            return s ? {
-                removeOthers: true,
-                popup: (ctx, ui, r) => {
-                    ctx.fillStyle = '#331111dd';
-                    ctx.strokeStyle = '#774444';
-                    ctx.fillRect(mX, mY - r(110), r(200), r(100));
-                    ctx.strokeRect(mX, mY - r(110), r(200), r(100));
+            if (s) {
+                return {
+                    removeOthers: true,
+                    popup: (ctx, ui, r) => {
+                        ctx.fillStyle = '#331111dd';
+                        ctx.strokeStyle = '#774444';
+                        ctx.fillRect(mX, mY - r(110), r(200), r(100));
+                        ctx.strokeRect(mX, mY - r(110), r(200), r(100));
 
+                        ctx.fillStyle = '#ffffff';
+                        ctx.font = `${r(10)}px luminari, fantasy`;
+                        ctx.fillText("Sin", mX + 10, mY - r(90));
+                        ctx.fillStyle = '#ffffff60';
+                        ctx.fillRect(mX + 10, mY - r(80), r(12), r(60));
+                        ctx.fillStyle = '#ff0000';
+                        ctx.fillRect(mX + 10, mY - r(80 - (60 - (s.s * 6))), r(12), r(s.s * 6)); //(sin * meterHeight) / maxSin
+                        ctx.strokeRect(mX + 10, mY - r(80), r(12), r(60));
 
-                    ctx.fillStyle = '#ffffff';
-                    ctx.font = `${r(10)}px luminari, fantasy`;
-                    ctx.fillText("Sin", mX + 10, mY - r(90));
-                    ctx.fillStyle = '#ffffff60';
-                    ctx.fillRect(mX + 10, mY - r(80), r(12), r(60));
-                    ctx.fillStyle = '#ff0000';
-                    ctx.fillRect(mX + 10, mY - r(80 - (60 - (s.s * 6))), r(12), r(s.s * 6)); //(sin * meterHeight) / maxSin
-                    ctx.strokeRect(mX + 10, mY - r(80), r(12), r(60));
+                        ctx.fillStyle = '#ffffff';
+                        ctx.fillText("Mis", mX + 32, mY - r(90));
+                        ctx.fillStyle = '#ffffff60';
+                        ctx.fillRect(mX + 32, mY - r(80), r(12), r(60));
+                        ctx.fillStyle = '#8800ff';
+                        ctx.fillRect(mX + 32, mY - r(80 - (60 - (s.m * 6))), r(12), r(s.m * 6)); //(sin * meterHeight) / maxSin
+                        ctx.strokeRect(mX + 32, mY - r(80), r(12), r(60));
 
-                    ctx.fillStyle = '#ffffff';
-                    ctx.fillText("Mis", mX + 32, mY - r(90));
-                    ctx.fillStyle = '#ffffff60';
-                    ctx.fillRect(mX + 32, mY - r(80), r(12), r(60));
-                    ctx.fillStyle = '#8800ff';
-                    ctx.fillRect(mX + 32, mY - r(80 - (60 - (s.m * 6))), r(12), r(s.m * 6)); //(sin * meterHeight) / maxSin
-                    ctx.strokeRect(mX + 32, mY - r(80), r(12), r(60));
+                        ctx.font = `${r(12)}px luminari, fantasy`;
+                        ctx.fillStyle = '#ffffff';
+                        ctx.fillText(s.desch, mX + 54, mY - r(70));
+                        ctx.fillText(s.descs, mX + 54, mY - r(55));
 
-                    ctx.font = `${r(12)}px luminari, fantasy`;
-                    ctx.fillStyle = '#ffffff';
-                    ctx.fillText(s.desch, mX + 54, mY - r(70));
-                    ctx.fillText(s.descs, mX + 54, mY - r(55));
+                        ctx.fillText(`Coins: ${s.c}`, mX + 54, mY - r(23));
 
-                    ctx.fillText(`Coins: ${s.c}`, mX + 54, mY - r(23));
+                        ctx.fillStyle = ui.cmi([mX + r(200 - 60), mY - r(40), r(20), r(20)], ui.x, ui.y) ? '#ff2222' : '#dd1111';
+                        ctx.fillRect(mX + r(200 - 60), mY - r(40), r(20), r(20));
+                        ctx.strokeRect(mX + r(200 - 60), mY - r(40), r(20), r(20));
 
-                    ctx.fillStyle = ui.cmi([mX + r(200 - 60), mY - r(40), r(20), r(20)], ui.x, ui.y) ? '#ff2222' : '#dd1111';
-                    ctx.fillRect(mX + r(200 - 60), mY - r(40), r(20), r(20));
-                    ctx.strokeRect(mX + r(200 - 60), mY - r(40), r(20), r(20));
+                        ctx.fillStyle = ui.cmi([mX + r(200 - 30), mY - r(40), r(20), r(20)], ui.x, ui.y) ? '#22ff22' : '#11dd11';
+                        ctx.fillRect(mX + r(200 - 30), mY - r(40), r(20), r(20));
+                        ctx.strokeRect(mX + r(200 - 30), mY - r(40), r(20), r(20));
 
-                    ctx.fillStyle = ui.cmi([mX + r(200 - 30), mY - r(40), r(20), r(20)], ui.x, ui.y) ? '#22ff22' : '#11dd11';
-                    ctx.fillRect(mX + r(200 - 30), mY - r(40), r(20), r(20));
-                    ctx.strokeRect(mX + r(200 - 30), mY - r(40), r(20), r(20));
-
-                    if (this.is.includes(s) && !s.a) {
-                        const decbtn = {
-                            t: "soul-btn", // type
-                            bt: `s-${s.id}`, //belongs to
-                            pos: [mX + r(200 - 60), mY - r(40), r(20), r(20)],
-                            onClick: (x, y) => {
-                                setTimeout(() => {
-                                    this.is = this.is.filter(i => i !== s);
-                                    this.sl = this.sl.filter(i => i !== s);
-                                    this.w.delete(`s-${s.id}`, 100);
-                                    resources.sd++;
-                                }, 1000);
-                                s.isDead = true;
-                                return { pp: true };
+                        if (this.is.includes(s) && !s.a) {
+                            const decbtn = {
+                                t: "soul-btn", // type
+                                bt: `s-${s.id}`, //belongs to
+                                pos: [mX + r(200 - 60), mY - r(40), r(20), r(20)],
+                                onClick: (x, y) => {
+                                    setTimeout(() => {
+                                        this.is = this.is.filter(i => i !== s);
+                                        this.sl = this.sl.filter(i => i !== s);
+                                        this.w.delete(`s-${s.id}`, 100);
+                                        resources.sd++;
+                                    }, 1000);
+                                    s.isDead = true;
+                                    return { pp: true };
+                                }
+                            };
+                            const accbtn = {
+                                t: "soul-btn", // type
+                                bt: `s-${s.id}`,
+                                pos: [mX + r(200 - 30), mY - r(40), r(20), r(20)],
+                                onClick: (x, y) => {
+                                    this.is = this.is.filter(i => i.id !== s.id);
+                                    s.z = 3;
+                                    this.w.move({ n: `s-${s.id}`, z: 3, a: 250 });
+                                    s.a = true;
+                                    resources.sa++;
+                                    resources.c += s.c;
+                                    return { pp: true };
+                                }
+                            };
+                            if (ui.wi.filter(i => i.t === "soul-btn").length === 0) {
+                                ui.wi.push(decbtn);
+                                ui.wi.push(accbtn);
+                            } else if (ui.wi.filter(i => i.t === "soul-btn" && i.bt !== `s-${s.id}`).length > 0) {
+                                ui.wi = ui.wi.filter(i => i.t !== "soul-btn");
                             }
-                        };
-                        const accbtn = {
-                            t: "soul-btn", // type
-                            bt: `s-${s.id}`,
-                            pos: [mX + r(200 - 30), mY - r(40), r(20), r(20)],
-                            onClick: (x, y) => {
-                                this.is = this.is.filter(i => i.id !== s.id);
-                                s.z = 3;
-                                this.w.move({ n: `s-${s.id}`, z: 3, a: 250 });
-                                s.a = true;
-                                resources.sa++;
-                                resources.c += s.c;
-                                return { pp: true };
-                            }
-                        };
-                        if (ui.wi.filter(i => i.t === "soul-btn").length === 0) {
-                            ui.wi.push(decbtn);
-                            ui.wi.push(accbtn);
-                        } else if (ui.wi.filter(i => i.t === "soul-btn" && i.bt !== `s-${s.id}`).length > 0) {
-                            ui.wi = ui.wi.filter(i => i.t !== "soul-btn");
                         }
                     }
-                }
-            } : { removeOthers: true };
+                };
+            }
+            return { removeOthers: true };
         }
         return;
     }
@@ -349,6 +370,7 @@ class Map {
             for (let i = 0; i < this.map[j].length; i++) {
                 if (!this.map[j][i].h) {
                     this.w.plane({
+                        n: `${j}-${i}`,
                         g: "map",
                         x: i * scale,
                         y: 0,

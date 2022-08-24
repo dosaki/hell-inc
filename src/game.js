@@ -4,6 +4,49 @@ import { int } from './utils/random-utils';
 const W = window.W;
 const gameCanvas = document.querySelector('[g]');
 
+W.add("cube", {
+    vertices: [
+        .5, .5, .5, -.5, .5, .5, -.5, -.5, .5, // front
+        .5, .5, .5, -.5, -.5, .5, .5, -.5, .5,
+        .5, .5, -.5, .5, .5, .5, .5, -.5, .5, // right
+        .5, .5, -.5, .5, -.5, .5, .5, -.5, -.5,
+        .5, .5, -.5, -.5, .5, -.5, -.5, .5, .5, // up
+        .5, .5, -.5, -.5, .5, .5, .5, .5, .5,
+        -.5, .5, .5, -.5, .5, -.5, -.5, -.5, -.5, // left
+        -.5, .5, .5, -.5, -.5, -.5, -.5, -.5, .5,
+        -.5, .5, -.5, .5, .5, -.5, .5, -.5, -.5, // back
+        -.5, .5, -.5, .5, -.5, -.5, -.5, -.5, -.5,
+        .5, -.5, .5, -.5, -.5, .5, -.5, -.5, -.5, // down
+        .5, -.5, .5, -.5, -.5, -.5, .5, -.5, -.5
+    ],
+    uv: [
+        1, 1, 0, 1, 0, 0, // front
+        1, 1, 0, 0, 1, 0,
+        1, 1, 0, 1, 0, 0, // right
+        1, 1, 0, 0, 1, 0,
+        1, 1, 0, 1, 0, 0, // up
+        1, 1, 0, 0, 1, 0,
+        1, 1, 0, 1, 0, 0, // left
+        1, 1, 0, 0, 1, 0,
+        1, 1, 0, 1, 0, 0, // back
+        1, 1, 0, 0, 1, 0,
+        1, 1, 0, 1, 0, 0, // down
+        1, 1, 0, 0, 1, 0
+    ]
+});
+W.cube = settings => W.setState(settings, 'cube');
+W.add("plane", {
+    vertices: [
+        .5, .5, 0, -.5, .5, 0, -.5, -.5, 0,
+        .5, .5, 0, -.5, -.5, 0, .5, -.5, 0
+    ],
+
+    uv: [
+        1, 1, 0, 1, 0, 0,
+        1, 1, 0, 0, 1, 0
+    ],
+});
+
 gameCanvas.oncontextmenu = (e) => { e.preventDefault(); e.stopPropagation(); };
 gameCanvas.width = Math.min(window.innerWidth, window.innerHeight);
 gameCanvas.height = gameCanvas.width;
