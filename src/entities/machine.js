@@ -21,11 +21,16 @@ class Machine {
      * Update Souls
      * @returns 
      */
-    ups () {
-        if((!this.nd || this.do) && this._mt && this.s) {
-            return this.s.su((!this.nd || this.do) ? this._mt * (this.do ? this.do.mb : 1) : 0);
+    ups() {
+        if ((!this.nd || this.do) && this.s && this.n === "Misery Extractor") {
+            const misery = this.s.m;
+            this.s.d = true;
+            this.s = null;
+            return { "extracted": misery };
         }
-        return null;
+        if ((!this.nd || this.do) && this._mt && this.s) {
+            this.s.su(this._mt * (this.do ? this.do.mb : 1), this.do ? this.do.e : 1);
+        }
     }
 
     clone(id) {

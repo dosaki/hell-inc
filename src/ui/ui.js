@@ -1,4 +1,5 @@
 import resources from '../entities/resources';
+import { Note } from '../utils/audio-utils';
 
 
 
@@ -22,21 +23,30 @@ class Ui {
 
     /**
      * Coordinates Match Item
-     * @param {*} pos 
+     * @param {*} rectangle 
      * @param {*} x 
      * @param {*} y 
      * @returns 
      */
-    cmi(pos, x, y) {
-        return pos[0] <= x && (pos[0] + pos[2]) >= x &&
-            pos[1] <= y && (pos[1] + pos[3]) >= y;
+    cmi(rectangle, x, y) {
+        return rectangle[0] <= x && (rectangle[0] + rectangle[2]) >= x &&
+            rectangle[1] <= y && (rectangle[1] + rectangle[3]) >= y;
     };
 
     doHovers(x, y, h) {
         this.x = x;
         this.y = y;
         this.ma = y < h - this.r(250);
-        this.is.forEach(i => this.cmi(i.pos, x, y) ? i.onHover(x, y) : (i.item.isHovering = false));
+        this.is.forEach(i => {
+            const wasHovering = i.item.isHovering;
+            i.item.isHovering = this.cmi(i.pos, x, y);
+            if (i.item.isHovering) {
+                i.onHover(x, y);
+            }
+            if (wasHovering && !i.item.isHovering) {
+                i.onMouseOut();
+            }
+        });
     }
 
     doClicks() {
@@ -55,7 +65,18 @@ class Ui {
      * @param {*} ctx 
      */
     dwpu(ctx) {
-        this.wpu.forEach(wp => wp(ctx, this, this.r));
+        this.wpu.forEach(wp => {
+            if (!wp.hasPoppedUp) {
+                setTimeout(() => {
+                    Note.new("c#", 4, 0.1, 0.3).play(0.5);
+                    setTimeout(() => {
+                        Note.new("f#", 4, 0.1, 0.3).play(0.5);
+                    }, 50);
+                }, 0);
+            }
+            wp.hasPoppedUp = true;
+            wp(ctx, this, this.r);
+        });
     }
 
     /**
@@ -84,7 +105,7 @@ class Ui {
 
         ctx.fillText(`Souls`, this.r(135), ctx.canvas.height - this.r(70));
         ctx.moveTo(this.r(135), ctx.canvas.height - this.r(66));
-        ctx.lineTo(this.r(342), ctx.canvas.height - this.r(66));
+        ctx.lineTo(this.r(418), ctx.canvas.height - this.r(66));
         ctx.stroke();
 
         ctx.fillText(`Accepted`, this.r(135), ctx.canvas.height - this.r(46));
@@ -94,16 +115,19 @@ class Ui {
         ctx.fillText(resources.sd, this.r(208), ctx.canvas.height - this.r(28));
 
         ctx.fillText(`Extracted`, this.r(279), ctx.canvas.height - this.r(46));
-        ctx.fillText(resources.sd, this.r(279), ctx.canvas.height - this.r(28));
+        ctx.fillText(resources.se, this.r(279), ctx.canvas.height - this.r(28));
+
+        ctx.fillText(`Destroyed`, this.r(350), ctx.canvas.height - this.r(46));
+        ctx.fillText(resources.ds, this.r(350), ctx.canvas.height - this.r(28));
 
 
-        ctx.fillText(`Level`, this.r(362), ctx.canvas.height - this.r(70));
+        ctx.fillText(`Level`, this.r(453), ctx.canvas.height - this.r(70));
         ctx.font = `${this.r(40)}px luminari, fantasy`;
-        ctx.moveTo(this.r(362), ctx.canvas.height - this.r(66));
-        ctx.lineTo(this.r(402), ctx.canvas.height - this.r(66));
+        ctx.moveTo(this.r(453), ctx.canvas.height - this.r(66));
+        ctx.lineTo(this.r(488), ctx.canvas.height - this.r(66));
         ctx.stroke();
 
-        ctx.fillText(resources.l, this.r(362), ctx.canvas.height - this.r(29));
+        ctx.fillText(resources.l, this.r(453), ctx.canvas.height - this.r(29));
 
         resources.ml.forEach((m, i) => {
             ctx.fillStyle = m.rl > resources.l ? '#221919' : '#331111';
@@ -126,11 +150,19 @@ class Ui {
                     pos: [this.r(15 + (i * 115)), ctx.canvas.height - this.r(235), this.r(100), this.r(100)],
                     onHover: (x, y) => {
                         m.isHovering = true;
+                        if (!m.playedSound) {
+                            Note.new("c#", 2, 0.05, 0.1).play();
+                        }
+                        m.playedSound = true;
                     },
                     onClick: (x, y) => {
                         if (m.rl <= resources.l) {
                             this.si = m;
+                            Note.new("f#", 4, 0.05, 0.15).play(0.5);
                         }
+                    },
+                    onMouseOut: () => {
+                        m.playedSound = false;
                     }
                 });
             }
@@ -151,9 +183,17 @@ class Ui {
                     pos: [ctx.canvas.width - this.r(235) + this.r(((i % 2) * 120)), ctx.canvas.height - this.r(235) + this.r((Math.floor(i / 2) * 120)), this.r(100), this.r(100)],
                     onHover: (x, y) => {
                         d.isHovering = true;
+                        if (!d.playedSound) {
+                            Note.new("c#", 2, 0.05, 0.15).play();
+                        }
+                        d.playedSound = true;
                     },
                     onClick: (x, y) => {
                         this.sd = d;
+                        Note.new("f#", 4, 0.05, 0.15).play(0.5);
+                    },
+                    onMouseOut: () => {
+                        d.playedSound = false;
                     }
                 });
             }
@@ -176,7 +216,7 @@ class Ui {
                 ctx.fillText(m.n, this.x + this.r(10), this.y - this.r(78));
                 ctx.font = `${this.r(14)}px luminari, fantasy`;
                 ctx.fillText(`Level: ${m.rl}`, this.x + this.r(190) - ctx.measureText(`Level: ${m.rl}`).width, this.y - this.r(78));
-                ctx.fillStyle = m.c >= resources.c ? '#FF0000' : (m.rl > resources.l ? '#887777' : '#ffdddd');
+                ctx.fillStyle = m.c > resources.c ? '#FF0000' : (m.rl > resources.l ? '#887777' : '#ffdddd');
                 ctx.fillText(`Cost: ${m.c} coins`, this.x + this.r(10), this.y - this.r(50));
                 ctx.fillStyle = m.rl > resources.l ? '#887777' : '#ffdddd';
                 if (m.mt) {
@@ -205,7 +245,8 @@ class Ui {
                 ctx.fillText(d.n, this.x - this.r(190), this.y - this.r(75));
                 ctx.font = `${this.r(14)}px luminari, fantasy`;
                 ctx.fillText(`Misery Inflicted: ${Math.floor(d.mb * 100)}%`, this.x - this.r(190), this.y - this.r(50));
-                ctx.fillText(`Misery Cost: ${d.mc}/cycle`, this.x - this.r(190), this.y - this.r(30));
+                ctx.fillText(`Expertise: ${Math.floor(d.e * 100)}%`, this.x - this.r(190), this.y - this.r(30));
+                ctx.fillText(`Misery Cost: ${d.mc}/cycle`, this.x - this.r(190), this.y - this.r(10));
             }
         });
     }
