@@ -30,16 +30,14 @@ fi
 
 cp -r ./libs/* ./app/js
 cp -r ./static/* ./app/
-cat ./static/index.html | sed 's/libs\/m\.js/js\/m.js/g' > ./app/index.tmp1.html
-cat ./app/index.tmp1.html | sed 's/libs\/w\.js/js\/w.js/g' > ./app/index.tmp2.html
-cat ./app/index.tmp2.html | tr '\n' ' ' | sed 's/  //g' > ./app/index.html
-rm ./app/index.tmp*.html
-# mv ./app/index.tmp.html ./app/index.html
+cat ./static/index.html | sed 's/libs\/w\.js/js\/w.js/g' > ./app/index.tmp.html
+cat ./app/index.tmp.html | tr '\n' ' ' | sed 's/  //g' > ./app/index.html
+rm ./app/index.tmp.html
 
 if [[ "${IS_DIST}" == "TRUE" ]]; then
   rm -r ./dist
   mkdir ./dist
-  7z a -r ./dist/${NAME}.zip ./app/* -xr!*.map
+  7z a -mm=Deflate64 -mx=9 -mpass=15 -r ./dist/${NAME}.zip ./app/* -xr!*.map
   size=`du -b ./dist/${NAME}.zip | awk '{print $1}'`
   size_diff=$((size - 13312))
   if [[ ${size_diff} -gt 0 ]]; then

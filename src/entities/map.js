@@ -4,7 +4,6 @@ import { int, pick } from '../utils/random-utils';
 import Demon from './demon';
 import resources from './resources';
 import Soul from './soul';
-
 class Map {
     constructor(s, h, w) {
         this.s = s; //size
@@ -41,6 +40,10 @@ class Map {
         this.graph = new Graph(this.map.map(col => col.map(c => !c.o ? 999 : (c.o.n === "Path" ? 1 : 25))));
     }
 
+    pd() {
+        this.m.forEach(machine => resources.m -= machine.m.do ? machine.m.do.mc : 0);
+    }
+
     freeSoulSpot(preChoice) {
         const spots = [
             [(this.s / 2) + 1, 2],
@@ -74,6 +77,14 @@ class Map {
             const result = i.m.ups();
             if (result && result.extracted) {
                 resources.m = result.extracted;
+                resources.se++;
+            }
+        });
+        this.sl = this.sl.filter(s => !s.d);
+        this.is = this.is.filter(s => !s.d);
+        this.m.forEach(m => {
+            if (m.m && m.m.s && m.m.s.d) {
+                m.m.s = null;
             }
         });
     }
@@ -82,11 +93,12 @@ class Map {
      * Update Souls
      */
     ups() {
-        this.sl.forEach((s, i) => {
+        this.sl.forEach((s) => {
             if (s.a && !s.d) {
                 s.fg(this.m);
                 if (s.g && s.g.m.s && s.g.m.s !== s) {
                     s.g = null;
+                    s.im = false
                     s.p = astar.s(this.graph, this.graph.g[s.z][s.x], this.graph.g[int(1, this.s - 2), int(1, this.s - 2)]);
                 }
                 if (s.g && !s.im && s.p.length === 0) {
@@ -114,6 +126,7 @@ class Map {
                     }, s.p[0].w === 999 ? 500 : 100);
                 }
             }
+            
             if (s.d) {
                 if (s.g && s.g.m && s.g.m.s === s) {
                     s.g.m.s = null;
@@ -122,12 +135,6 @@ class Map {
                 setTimeout(() => {
                     this.w.delete(`s-${s.id}`);
                 }, 500);
-            }
-        });
-        this.sl = this.sl.filter(s => !s.d);
-        this.m.forEach(m => {
-            if (m.m && m.m.s && m.m.s.d) {
-                m.m.s = null;
             }
         });
     }
@@ -241,8 +248,8 @@ class Map {
         if (!selectedItem && !selectedDemon) {
             if (this.map[z][x].o !== true && this.map[z][x].o) {
                 return {
-                    removeOthers: true,
-                    popup: (ctx, ui, r) => {
+                    r: (resize) => [mX, mY - resize(110), resize(200), resize(100)],
+                    popup: (ctx, r) => {
                         ctx.fillStyle = '#331111dd';
                         ctx.strokeStyle = '#774444';
                         ctx.fillRect(mX, mY - r(110), r(200), r(100));
@@ -255,7 +262,9 @@ class Map {
                         ctx.font = `${r(14)}px luminari, fantasy`;
                         ctx.fillText(this.map[z][x].o.n, mX + r(30), mY - r(85));
                         if (this.map[z][x].o.do) {
-                            ctx.drawImage(this.map[z][x].o.do.f ? fimg : mimg, mX + r(10), mY - r(75), r(55), r(55));
+                            ctx.filter = `hue-rotate(${this.map[z][x].o.do.hr}deg)`;
+                            ctx.drawImage(dimg, mX + r(10), mY - r(75), r(55), r(55));
+                            ctx.filter = "none";
                         } else {
                             ctx.fillStyle = '#000000';
                             ctx.fillRect(mX + r(10), mY - r(75), r(55), r(55));
@@ -269,7 +278,7 @@ class Map {
                             ctx.fillStyle = '#ffffff60';
                             ctx.fillRect(mX + r(110), mY - r(70), r(12), r(50));
                             ctx.fillStyle = '#8800ff';
-                            ctx.fillRect(mX + r(110), mY - r(70 - (50 - (this.map[z][x].o.s.m * 5))), r(12), r(this.map[z][x].o.s.m * 5)); //(sin * meterHeight) / maxSin
+                            ctx.fillRect(mX + r(110), mY - r(70 - (50 - ((this.map[z][x].o.s.m * 50) / this.map[z][x].o.s.md))), r(12), r((this.map[z][x].o.s.m * 50) / this.map[z][x].o.s.md)); //(sin * meterHeight) / maxSin
                             ctx.strokeRect(mX + r(110), mY - r(70), r(12), r(50));
                         }
                     }
@@ -278,8 +287,8 @@ class Map {
             const s = this.sl.find(s => s.x === x && s.z === z);
             if (s) {
                 return {
-                    removeOthers: true,
-                    popup: (ctx, ui, r) => {
+                    r: (resize) => [mX, mY - resize(110), resize(200), resize(100)],
+                    popup: (ctx, r, ui) => {
                         ctx.fillStyle = '#331111dd';
                         ctx.strokeStyle = '#774444';
                         ctx.fillRect(mX, mY - r(110), r(200), r(100));
@@ -291,16 +300,8 @@ class Map {
                         ctx.fillStyle = '#ffffff60';
                         ctx.fillRect(mX + 10, mY - r(80), r(12), r(60));
                         ctx.fillStyle = '#ff0000';
-                        ctx.fillRect(mX + 10, mY - r(80 - (60 - (s.s * 6))), r(12), r(s.s * 6)); //(sin * meterHeight) / maxSin
+                        ctx.fillRect(mX + 10, mY - r(80 - (60 - ((s.s * 60) / s.md))), r(12), r((s.s * 60) / s.md)); //(sin * meterHeight) / maxSin
                         ctx.strokeRect(mX + 10, mY - r(80), r(12), r(60));
-
-                        ctx.fillStyle = '#ffffff';
-                        ctx.fillText("Mis", mX + 32, mY - r(90));
-                        ctx.fillStyle = '#ffffff60';
-                        ctx.fillRect(mX + 32, mY - r(80), r(12), r(60));
-                        ctx.fillStyle = '#8800ff';
-                        ctx.fillRect(mX + 32, mY - r(80 - (60 - (s.m * 6))), r(12), r(s.m * 6)); //(sin * meterHeight) / maxSin
-                        ctx.strokeRect(mX + 32, mY - r(80), r(12), r(60));
 
                         ctx.font = `${r(12)}px luminari, fantasy`;
                         ctx.fillStyle = '#ffffff';

@@ -18,6 +18,19 @@ class Soul {
         this.p = []; // path to goal
         this.d = false; // is dead
         this.im = false; // is moving
+        this.om = 0; // old misery
+        this.mlc = 0; // misery last changed
+    }
+
+    get md() {
+        return 1 + (10 * this._s * 0.5);
+    }
+
+    u() {
+        this.mlc = this.om !== this.m ? 0 : this.mlc + 1;
+        // console.log(this.mlc);
+        this.d = this.mlc > 30;
+        resources.ds += this.d ? 1 : 0;
     }
 
     /**
@@ -26,8 +39,9 @@ class Soul {
      */
     su(misery, demonExpertise) {
         if (!this.d) {
-            this.m = Math.min(10, this.m + Math.floor(misery + (10 - this._s) * 0.2));
-            this.d = int(0, 1500 * demonExpertise) < (this.cod + this.m);
+            this.om = this.m;
+            this.m = Math.min(this.md, this.m + Math.floor(misery + (10 - this._s) * 0.2));
+            this.d = int(0, 1500 * demonExpertise) < this.cod;
             resources.ds += this.d ? 1 : 0;
         }
     }
@@ -43,7 +57,7 @@ class Soul {
                 // console.log(this.id, "Finding new goal...");
                 this.g = pick(...machines.filter(m => (!m.m.nd || m.m.do) && m.m.t !== "plane" && m.m.n !== "Misery Extractor" && !m.m.s));
             }
-            if (this.m >= 10) {
+            if (this.m >= (10 * this._s * 0.5)) {
                 // console.log(this.id, "Finding Extractor...");
                 if (this.g && this.g.m.n !== "Misery Extractor") {
                     this.g.m.s = null;

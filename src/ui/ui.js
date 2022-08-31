@@ -15,6 +15,8 @@ class Ui {
         this.ma = false; // cursor is in map area
         this.s = 1100; // canvas size
         this.wpu = []; // world pop ups
+        this.cwp = [0, 0, 0, 0]; // current world popup
+        this.c = 0; // cycle
     }
 
     r = (size) => {
@@ -75,7 +77,7 @@ class Ui {
                 }, 0);
             }
             wp.hasPoppedUp = true;
-            wp(ctx, this, this.r);
+            wp(ctx, this.r, this);
         });
     }
 
@@ -91,43 +93,45 @@ class Ui {
 
         ctx.fillStyle = '#ffeeee';
         ctx.font = `${this.r(16)}px luminari, fantasy`;
-        ctx.fillText(`Balance`, this.r(10), ctx.canvas.height - this.r(70));
-        ctx.moveTo(this.r(10), ctx.canvas.height - this.r(66));
-        ctx.lineTo(this.r(105), ctx.canvas.height - this.r(66));
+        ctx.fillText(`Balance`, this.r(10), ctx.canvas.height - this.r(80));
+        ctx.moveTo(this.r(10), ctx.canvas.height - this.r(76));
+        ctx.lineTo(this.r(105), ctx.canvas.height - this.r(76));
         ctx.stroke();
 
-        ctx.fillText(`Coins`, this.r(10), ctx.canvas.height - this.r(46));
-        ctx.fillText(resources.c, this.r(10), ctx.canvas.height - this.r(28));
+        ctx.fillText(`Coins`, this.r(10), ctx.canvas.height - this.r(56));
+        ctx.fillText(resources.c, this.r(10), ctx.canvas.height - this.r(38));
 
-        ctx.fillText(`Misery`, this.r(60), ctx.canvas.height - this.r(46));
-        ctx.fillText(resources.m, this.r(60), ctx.canvas.height - this.r(28));
+        ctx.fillText(`Misery`, this.r(60), ctx.canvas.height - this.r(56));
+        ctx.fillText(resources.m, this.r(60), ctx.canvas.height - this.r(38));
 
 
-        ctx.fillText(`Souls`, this.r(135), ctx.canvas.height - this.r(70));
-        ctx.moveTo(this.r(135), ctx.canvas.height - this.r(66));
-        ctx.lineTo(this.r(418), ctx.canvas.height - this.r(66));
+        ctx.fillText(`Souls`, this.r(135), ctx.canvas.height - this.r(80));
+        ctx.moveTo(this.r(135), ctx.canvas.height - this.r(76));
+        ctx.lineTo(this.r(418), ctx.canvas.height - this.r(76));
         ctx.stroke();
 
-        ctx.fillText(`Accepted`, this.r(135), ctx.canvas.height - this.r(46));
-        ctx.fillText(resources.sa, this.r(135), ctx.canvas.height - this.r(28));
+        ctx.fillText(`Accepted`, this.r(135), ctx.canvas.height - this.r(56));
+        ctx.fillText(resources.sa, this.r(135), ctx.canvas.height - this.r(38));
 
-        ctx.fillText(`Declined`, this.r(208), ctx.canvas.height - this.r(46));
-        ctx.fillText(resources.sd, this.r(208), ctx.canvas.height - this.r(28));
+        ctx.fillText(`Declined`, this.r(208), ctx.canvas.height - this.r(56));
+        ctx.fillText(resources.sd, this.r(208), ctx.canvas.height - this.r(38));
 
-        ctx.fillText(`Extracted`, this.r(279), ctx.canvas.height - this.r(46));
-        ctx.fillText(resources.se, this.r(279), ctx.canvas.height - this.r(28));
+        ctx.fillText(`Extracted`, this.r(279), ctx.canvas.height - this.r(56));
+        ctx.fillText(resources.se, this.r(279), ctx.canvas.height - this.r(38));
 
-        ctx.fillText(`Destroyed`, this.r(350), ctx.canvas.height - this.r(46));
-        ctx.fillText(resources.ds, this.r(350), ctx.canvas.height - this.r(28));
+        ctx.fillText(`Destroyed`, this.r(350), ctx.canvas.height - this.r(56));
+        ctx.fillText(`${resources.ds} / ${resources.md}`, this.r(350), ctx.canvas.height - this.r(38));
 
+        ctx.fillText(`Cycle`, this.r(10), ctx.canvas.height - this.r(10));
+        ctx.fillRect(this.r(55), ctx.canvas.height - this.r(20), this.c/100, this.r(10));
+        ctx.strokeRect(this.r(55), ctx.canvas.height - this.r(20), 100, this.r(10));
 
-        ctx.fillText(`Level`, this.r(453), ctx.canvas.height - this.r(70));
+        ctx.fillText(`Level`, this.r(453), ctx.canvas.height - this.r(80));
         ctx.font = `${this.r(40)}px luminari, fantasy`;
-        ctx.moveTo(this.r(453), ctx.canvas.height - this.r(66));
-        ctx.lineTo(this.r(488), ctx.canvas.height - this.r(66));
+        ctx.moveTo(this.r(453), ctx.canvas.height - this.r(76));
+        ctx.lineTo(this.r(488), ctx.canvas.height - this.r(76));
         ctx.stroke();
-
-        ctx.fillText(resources.l, this.r(453), ctx.canvas.height - this.r(29));
+        ctx.fillText(resources.l, this.r(453), ctx.canvas.height - this.r(39));
 
         resources.ml.forEach((m, i) => {
             ctx.fillStyle = m.rl > resources.l ? '#221919' : '#331111';
@@ -171,7 +175,9 @@ class Ui {
         resources.dl.forEach((d, i) => {
             ctx.imageSmoothingEnabled = false;
             ctx.strokeStyle = d.mc > resources.m ? '#554545' : this.sd === d ? '#ffff00' : '#774444';
-            ctx.drawImage(d.f ? fimg : mimg, ctx.canvas.width - this.r(235) + this.r(((i % 2) * 120)), ctx.canvas.height - this.r(235) + this.r((Math.floor(i / 2) * 120)), this.r(100), this.r(100));
+            ctx.filter = `hue-rotate(${d.hr}deg)`;
+            ctx.drawImage(dimg, ctx.canvas.width - this.r(235) + this.r(((i % 2) * 120)), ctx.canvas.height - this.r(235) + this.r((Math.floor(i / 2) * 120)), this.r(100), this.r(100));
+            ctx.filter = "none";
             if (d.mc > resources.m) {
                 ctx.fillStyle = '#33333380';
                 ctx.fillRect(ctx.canvas.width - this.r(235) + this.r(((i % 2) * 120)), ctx.canvas.height - this.r(235) + this.r((Math.floor(i / 2) * 120)), this.r(100), this.r(100));

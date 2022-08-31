@@ -4,7 +4,7 @@ class Machine {
         this.n = n;
         this.c = cost;
         this.nd = needsDemon;
-        this.do = null;
+        this.do = null; // demon operator
         this._mt = miseryPerTick;
         this.rl = requiredLevel;
         this.t = type;
