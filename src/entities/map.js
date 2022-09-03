@@ -29,18 +29,6 @@ class Map {
             if (j < 4 && [(this.s / 2) + 1, this.s / 2, (this.s / 2) - 1].includes(i)) {
                 return { o: true };
             }
-            if (i === s - 1) {
-                return { o: null };
-            }
-            if (!j) {
-                return { o: null };
-            }
-            if (!i) {
-                return { o: null };
-            }
-            if (j === s - 1) {
-                return { o: null };
-            }
             return { o: null };
         }));
 
@@ -54,7 +42,10 @@ class Map {
         this.um.forEach(machine => resources.m -= machine.m.do ? machine.m.do.mc : 0);
     }
 
-    freeSoulSpot(preChoice) {
+    /**
+     * Find free soul spot
+     */
+    fss(preChoice) {
         const spots = [
             [(this.s / 2) + 1, 2],
             [(this.s / 2) - 1, 2],
@@ -63,9 +54,12 @@ class Map {
         return preChoice === null ? pick(...spots) : spots[preChoice];
     }
 
-    spawnSoul(isTutorial, spotChoice) {
+    /**
+     * Spawn soul
+     */
+    ss(isTutorial, spotChoice) {
         if (this.is.length < 3) {
-            const [x, z] = this.freeSoulSpot(isTutorial ? spotChoice : null);
+            const [x, z] = this.fss(isTutorial ? spotChoice : null);
             const s = new Soul(this.sli, x, z);
             if (isTutorial) {
                 s._s = 9;
@@ -82,7 +76,10 @@ class Map {
         }
     }
 
-    updateMachines() {
+    /**
+     * Update machines
+     */
+    uma() {
         this.um.forEach(i => {
             const result = i.m.ups();
             if (result && result.extracted) {
@@ -157,7 +154,10 @@ class Map {
         });
     }
 
-    isAreaOccupied(x, y, width, depth) {
+    /**
+     * Is area occupied
+     */
+    iao(x, y, width, depth) {
         if (x - Math.floor(width / 2) === 0 || x + Math.floor(width / 2) === this.s - 1 || y - Math.floor(depth / 2) === 0 || y + Math.floor(depth / 2) === this.s - 1) {
             return true;
         }
@@ -171,7 +171,10 @@ class Map {
         return false;
     }
 
-    addToArea(x, z, width, depth, m) {
+    /**
+     * Add to area
+     */
+    ata(x, z, width, depth, m) {
         for (let j = z - Math.floor(depth / 2); j <= z + Math.floor(depth / 2); j++) {
             for (let i = x - Math.floor(width / 2); i <= x + Math.floor(width / 2); i++) {
                 this.map[j][i].o = m;
@@ -180,11 +183,11 @@ class Map {
         if (m.t !== "plane") {
             this.w.shadow({
                 n: `sh-b${x}${z}`,
-                x: x - ((Math.sqrt(Math.pow(width, 2) + Math.pow(depth, 2)) / 6) + m.h/8),
+                x: x - ((Math.sqrt(Math.pow(width, 2) + Math.pow(depth, 2)) / 6) + m.h/16),
                 y: 0.1,
-                z: z - ((Math.sqrt(Math.pow(width, 2) + Math.pow(depth, 2)) / 6) + m.h/8),
+                z: z - ((Math.sqrt(Math.pow(width, 2) + Math.pow(depth, 2)) / 6) + m.h/16),
                 w: Math.sqrt(Math.pow(width, 2) + Math.pow(depth, 2)),
-                h: m.h/4 + Math.sqrt(Math.pow(width, 2) + Math.pow(depth, 2)) / 2,
+                h: m.h/8 + Math.sqrt(Math.pow(width, 2) + Math.pow(depth, 2)) / 2,
                 b: '#00000099',
                 ry: 45,
                 rx: -90
@@ -215,7 +218,7 @@ class Map {
             return;
         }
 
-        if (selectedItem && !this.isAreaOccupied(x, z, selectedItem.w, selectedItem.d) && selectedItem.c <= resources.c) {
+        if (selectedItem && !this.iao(x, z, selectedItem.w, selectedItem.d) && selectedItem.c <= resources.c) {
             if (!silent) {
                 Note.new("b", 4, 0.1).play(0.5);
                 setTimeout(() => {
@@ -230,7 +233,7 @@ class Map {
             if (m.n !== "Path") {
                 this.um.push({ m, x, z });
             }
-            this.addToArea(x, z, selectedItem.w, selectedItem.d, m);
+            this.ata(x, z, selectedItem.w, selectedItem.d, m);
             this.mi++;
             let opts = {
                 n: `b-${m.id}`,
@@ -413,7 +416,7 @@ class Map {
                     d: selectedItem.d,
                     w: selectedItem.w,
                     h: selectedItem.h,
-                    b: this.isAreaOccupied(x, z, selectedItem.w, selectedItem.d) || resources.c < selectedItem.c ? "#ff000044" : "#aaaa0044"
+                    b: this.iao(x, z, selectedItem.w, selectedItem.d) || resources.c < selectedItem.c ? "#ff000044" : "#aaaa0044"
                 });
             }
             if (selectedItem && selectedItem.t === "plane") {
@@ -425,7 +428,7 @@ class Map {
                     w: isDragging ? Math.floor(x < startX ? startX - x : x - startX) + selectedItem.w : selectedItem.w,
                     d: isDragging ? Math.floor(z < startZ ? startZ - z : z - startZ) + selectedItem.w : selectedItem.w,
                     h: 0.1,
-                    b: this.isAreaOccupied(x, z, selectedItem.w, selectedItem.d) && !isDragging ||
+                    b: this.iao(x, z, selectedItem.w, selectedItem.d) && !isDragging ||
                         (isDragging ?
                             resources.c < selectedItem.c * ((Math.floor(x < startX ? startX - x : x - startX) + selectedItem.w) * (Math.floor(z < startZ ? startZ - z : z - startZ) + selectedItem.w)) :
                             resources.c < selectedItem.c) ?

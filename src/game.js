@@ -262,7 +262,7 @@ const main = function () {
     const now = new Date().getTime();
     tutorialCtx.clearRect(0, 0, cui.width, cui.height);
     if (!gameLost && int(0, 500) >= 495) {
-        map.spawnSoul();
+        map.ss();
     }
     map.ups();
 
@@ -326,7 +326,7 @@ const main = function () {
     }
 
     if (!gameLost && now - machinesLastUpdated >= 1000) {
-        map.updateMachines();
+        map.uma();
         map.sl.forEach(s => s.u(isTutorial));
         machinesLastUpdated = now;
     }
@@ -368,6 +368,6 @@ window.play = (tutorialMode) => {
     cg.removeAttribute("n");
     ct.removeAttribute("n");
     menu.setAttribute("n", "");
-    map.spawnSoul(isTutorial, 1);
+    map.ss(isTutorial, 1);
     main();
 };
