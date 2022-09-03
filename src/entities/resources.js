@@ -5,7 +5,7 @@ import Machine from './machine';
 class Resources {
     constructor() {
         this.m = 10; // misery
-        this.c = 2000; // coins
+        this.c = 20; // coins
         this.sa = 0; // souls accepted
         this.sd = 0; // souls declined
         this.se = 0; // souls extracted
@@ -23,7 +23,7 @@ class Resources {
     }
 
     get l() { // level
-        return 20//Math.floor(Math.sqrt(this.se + 15) / Math.sqrt(10));
+        return Math.floor(Math.sqrt(this.se + 15) / Math.sqrt(10));
     }
 
     get md() { //maximum destroyed souls
