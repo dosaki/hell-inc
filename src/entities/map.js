@@ -4,10 +4,17 @@ import { int, pick } from '../utils/random-utils';
 import Demon from './demon';
 import resources from './resources';
 import Soul from './soul';
+import { createPerlinImage } from '../utils/perlin';
+
+const bhimg = createPerlinImage(100, [0]);
+const whimg = createPerlinImage(50, [0]);
+const hhimg = createPerlinImage(8, [0, 2], 200, true);
+const fhimg = createPerlinImage(8, [0, 1, 2]);
 class Map {
     constructor(s, h, w) {
         this.s = s; //size
         this.m = []; //machines
+        this.um = []; //updatable machines
         this.mi = 1; //machine id iterator
         this.dl = []; //demon list
         this.dli = 1; //demon id iterator
@@ -20,28 +27,31 @@ class Map {
 
         this.map = [...new Array(s)].map((_, j) => [...new Array(s)].map((_, i) => {
             if (j < 4 && [(this.s / 2) + 1, this.s / 2, (this.s / 2) - 1].includes(i)) {
-                return { h: 0, t: bimg, r: pick(0, 90, 180, 270), b: "#aa3300", o: true };
+                return { o: true };
             }
             if (i === s - 1) {
-                return { h, t: himg, r: pick(0, 90, 180, 270), b: pick("#661111", "#441111", "#330000"), o: null };
+                return { o: null };
             }
             if (!j) {
-                return { h, t: himg, r: pick(0, 90, 180, 270), b: pick("#661111", "#441111", "#330000"), o: null };
+                return { o: null };
             }
             if (!i) {
-                return { h: 2, t: himg, r: pick(0, 90, 180, 270), b: pick("#661111", "#441111", "#330000"), o: null };
+                return { o: null };
             }
             if (j === s - 1) {
-                return { h: 2, t: himg, r: pick(0, 90, 180, 270), b: pick("#661111", "#441111", "#330000"), o: null };
+                return { o: null };
             }
-            return { h: 0, t: himg, r: pick(0, 90, 180, 270), b: pick("#661111", "#441111", "#330000"), o: null };
+            return { o: null };
         }));
 
         this.graph = new Graph(this.map.map(col => col.map(c => !c.o ? 999 : (c.o.n === "Path" ? 1 : 25))));
     }
 
+    /**
+     * Pay Demons
+     */
     pd() {
-        this.m.forEach(machine => resources.m -= machine.m.do ? machine.m.do.mc : 0);
+        this.um.forEach(machine => resources.m -= machine.m.do ? machine.m.do.mc : 0);
     }
 
     freeSoulSpot(preChoice) {
@@ -73,7 +83,7 @@ class Map {
     }
 
     updateMachines() {
-        this.m.forEach(i => {
+        this.um.forEach(i => {
             const result = i.m.ups();
             if (result && result.extracted) {
                 resources.m = result.extracted;
@@ -82,7 +92,7 @@ class Map {
         });
         this.sl = this.sl.filter(s => !s.d);
         this.is = this.is.filter(s => !s.d);
-        this.m.forEach(m => {
+        this.um.forEach(m => {
             if (m.m && m.m.s && m.m.s.d) {
                 m.m.s = null;
             }
@@ -95,10 +105,10 @@ class Map {
     ups() {
         this.sl.forEach((s) => {
             if (s.a && !s.d) {
-                s.fg(this.m);
+                s.fg(this.um);
                 if (s.g && s.g.m.s && s.g.m.s !== s) {
                     s.g = null;
-                    s.im = false
+                    s.im = false;
                     s.p = astar.s(this.graph, this.graph.g[s.z][s.x], this.graph.g[int(1, this.s - 2), int(1, this.s - 2)]);
                 }
                 if (s.g && !s.im && s.p.length === 0) {
@@ -126,7 +136,7 @@ class Map {
                     }, s.p[0].w === 999 ? 500 : 100);
                 }
             }
-            
+
             if (s.d) {
                 if (s.g && s.g.m && s.g.m.s === s) {
                     s.g.m.s = null;
@@ -161,19 +171,24 @@ class Map {
         return false;
     }
 
-    addToArea(x, y, width, depth, m) {
-        for (let j = y - Math.floor(depth / 2); j <= y + Math.floor(depth / 2); j++) {
+    addToArea(x, z, width, depth, m) {
+        for (let j = z - Math.floor(depth / 2); j <= z + Math.floor(depth / 2); j++) {
             for (let i = x - Math.floor(width / 2); i <= x + Math.floor(width / 2); i++) {
                 this.map[j][i].o = m;
-                if (m.t !== "plane") {
-                    this.w.move({ n: `${j - 1}-${i - 1}`, b: "#000000", mix: 0.5 });
-                }
             }
         }
         if (m.t !== "plane") {
-            this.w.move({ n: `${y + Math.floor(depth / 2)}-${x - (Math.floor(width / 2) + 1)}`, b: "#000000", mix: 0.5 });
-            this.w.move({ n: `${y - Math.floor(depth / 2)}-${x}`, b: "#000000", mix: 0.5 });
-            this.w.move({ n: `${y - 1}-${x}`, b: "#000000", mix: 0.5 });
+            this.w.shadow({
+                n: `sh-b${x}${z}`,
+                x: x - ((Math.sqrt(Math.pow(width, 2) + Math.pow(depth, 2)) / 6) + m.h/8),
+                y: 0.1,
+                z: z - ((Math.sqrt(Math.pow(width, 2) + Math.pow(depth, 2)) / 6) + m.h/8),
+                w: Math.sqrt(Math.pow(width, 2) + Math.pow(depth, 2)),
+                h: m.h/4 + Math.sqrt(Math.pow(width, 2) + Math.pow(depth, 2)) / 2,
+                b: '#00000099',
+                ry: 45,
+                rx: -90
+            });
         }
         resources.c -= m.c;
         this.graph = new Graph(this.map.map(col => col.map(c => !c.o ? 999 : (c.o.n === "Path" ? 1 : 25))));
@@ -190,11 +205,11 @@ class Map {
                     this.doClicks(selectedItem, selectedDemon, i, j, inMapArea, false, 0, 0, 0, 0, true);
                 }
             }
-            Note.new("b", 4, 0.1, 0.3).play(0.5);
+            Note.new("b", 4, 0.1).play(0.5);
             setTimeout(() => {
-                Note.new("e", 3, 0.1, 0.3).play(0.5);
+                Note.new("e", 3, 0.1).play(0.5);
                 setTimeout(() => {
-                    Note.new("c#", 2, 0.1, 0.3).play(0.5);
+                    Note.new("c#", 2, 0.1).play(0.5);
                 }, 70);
             }, 70);
             return;
@@ -202,16 +217,19 @@ class Map {
 
         if (selectedItem && !this.isAreaOccupied(x, z, selectedItem.w, selectedItem.d) && selectedItem.c <= resources.c) {
             if (!silent) {
-                Note.new("b", 4, 0.1, 0.3).play(0.5);
+                Note.new("b", 4, 0.1).play(0.5);
                 setTimeout(() => {
-                    Note.new("e", 3, 0.1, 0.3).play(0.5);
+                    Note.new("e", 3, 0.1).play(0.5);
                     setTimeout(() => {
-                        Note.new("c#", 2, 0.1, 0.3).play(0.5);
+                        Note.new("c#", 2, 0.1).play(0.5);
                     }, 70);
                 }, 70);
             }
             const m = selectedItem.clone(this.mi);
             this.m.push({ m, x, z });
+            if (m.n !== "Path") {
+                this.um.push({ m, x, z });
+            }
             this.addToArea(x, z, selectedItem.w, selectedItem.d, m);
             this.mi++;
             let opts = {
@@ -226,9 +244,10 @@ class Map {
                 this.w["cube"](opts);
             }
             if (selectedItem.t === "plane") {
+                opts["g"] = "map";
                 opts["y"] = 0;
                 opts["h"] = 0.1;
-                opts["b"] = "#00000000";
+                opts["b"] = "#000";
                 opts["mix"] = int(10, 15) / 40;
                 opts["ry"] = pick(0, 90, 180, 270);
                 this.w["cube"](opts);
@@ -246,19 +265,19 @@ class Map {
         }
 
         if (!selectedItem && !selectedDemon) {
-            if (this.map[z][x].o !== true && this.map[z][x].o) {
+            if (this.map[z][x].o !== true && this.map[z][x].o && this.map[z][x].o.n !== "Path") {
                 return {
                     r: (resize) => [mX, mY - resize(110), resize(200), resize(100)],
                     popup: (ctx, r) => {
-                        ctx.fillStyle = '#331111dd';
-                        ctx.strokeStyle = '#774444';
+                        ctx.fillStyle = '#311d';
+                        ctx.strokeStyle = '#744';
                         ctx.fillRect(mX, mY - r(110), r(200), r(100));
                         ctx.strokeRect(mX, mY - r(110), r(200), r(100));
 
-                        ctx.fillStyle = this.map[z][x].o.nd && !this.map[z][x].o.do ? '#ff0000' : '#00ff00';
+                        ctx.fillStyle = this.map[z][x].o.nd && !this.map[z][x].o.do ? '#f00' : '#0f0';
                         ctx.font = `${r(16)}px luminari, fantasy`;
                         ctx.fillText("⬤", mX + r(10), mY - r(85));
-                        ctx.fillStyle = '#ffffff';
+                        ctx.fillStyle = '#fff';
                         ctx.font = `${r(14)}px luminari, fantasy`;
                         ctx.fillText(this.map[z][x].o.n, mX + r(30), mY - r(85));
                         if (this.map[z][x].o.do) {
@@ -266,18 +285,18 @@ class Map {
                             ctx.drawImage(dimg, mX + r(10), mY - r(75), r(55), r(55));
                             ctx.filter = "none";
                         } else {
-                            ctx.fillStyle = '#000000';
+                            ctx.fillStyle = '#000';
                             ctx.fillRect(mX + r(10), mY - r(75), r(55), r(55));
                         }
                         ctx.strokeRect(mX + r(10), mY - r(75), r(55), r(55));
 
                         if (this.map[z][x].o.s && !this.map[z][x].o.s.d) {
                             ctx.drawImage(simg, mX + r(75), mY - r(75), 35, 55);
-                            ctx.fillStyle = '#ffffff';
+                            ctx.fillStyle = '#fff';
                             ctx.fillText("Mis", mX + r(110), mY - r(75));
-                            ctx.fillStyle = '#ffffff60';
+                            ctx.fillStyle = '#fff6';
                             ctx.fillRect(mX + r(110), mY - r(70), r(12), r(50));
-                            ctx.fillStyle = '#8800ff';
+                            ctx.fillStyle = '#80f';
                             ctx.fillRect(mX + r(110), mY - r(70 - (50 - ((this.map[z][x].o.s.m * 50) / this.map[z][x].o.s.md))), r(12), r((this.map[z][x].o.s.m * 50) / this.map[z][x].o.s.md)); //(sin * meterHeight) / maxSin
                             ctx.strokeRect(mX + r(110), mY - r(70), r(12), r(50));
                         }
@@ -289,36 +308,40 @@ class Map {
                 return {
                     r: (resize) => [mX, mY - resize(110), resize(200), resize(100)],
                     popup: (ctx, r, ui) => {
-                        ctx.fillStyle = '#331111dd';
-                        ctx.strokeStyle = '#774444';
+                        ctx.fillStyle = '#311d';
+                        ctx.strokeStyle = '#744';
                         ctx.fillRect(mX, mY - r(110), r(200), r(100));
                         ctx.strokeRect(mX, mY - r(110), r(200), r(100));
 
-                        ctx.fillStyle = '#ffffff';
+                        ctx.fillStyle = '#fff';
                         ctx.font = `${r(10)}px luminari, fantasy`;
                         ctx.fillText("Sin", mX + 10, mY - r(90));
-                        ctx.fillStyle = '#ffffff60';
+                        ctx.fillStyle = '#fff6';
                         ctx.fillRect(mX + 10, mY - r(80), r(12), r(60));
-                        ctx.fillStyle = '#ff0000';
+                        ctx.fillStyle = '#f00';
                         ctx.fillRect(mX + 10, mY - r(80 - (60 - ((s.s * 60) / s.md))), r(12), r((s.s * 60) / s.md)); //(sin * meterHeight) / maxSin
                         ctx.strokeRect(mX + 10, mY - r(80), r(12), r(60));
 
                         ctx.font = `${r(12)}px luminari, fantasy`;
-                        ctx.fillStyle = '#ffffff';
-                        ctx.fillText(s.desch, mX + 54, mY - r(70));
-                        ctx.fillText(s.descs, mX + 54, mY - r(55));
+                        ctx.fillStyle = '#fff';
+                        ctx.fillText(s.desch, mX + 54, mY - r(90));
+                        ctx.fillText(s.descs, mX + 54, mY - r(75));
+
+                        if (s.rm) {
+                            ctx.fillText(`Needs: ${resources.ml[s.rm].n}`, mX + 54, mY - r(50));
+                        }
 
                         ctx.fillText(`Coins: ${s.c}`, mX + 54, mY - r(23));
 
-                        ctx.fillStyle = ui.cmi([mX + r(200 - 60), mY - r(40), r(20), r(20)], ui.x, ui.y) ? '#ff2222' : '#771111';
+                        ctx.fillStyle = ui.cmi([mX + r(200 - 60), mY - r(40), r(20), r(20)], ui.x, ui.y) ? '#f22' : '#711';
                         ctx.fillRect(mX + r(200 - 60), mY - r(40), r(20), r(20));
-                        ctx.fillStyle = '#ffffff';
+                        ctx.fillStyle = '#fff';
                         ctx.fillText("✖", mX + r(200 - 55), mY - r(25));
                         ctx.strokeRect(mX + r(200 - 60), mY - r(40), r(20), r(20));
 
-                        ctx.fillStyle = ui.cmi([mX + r(200 - 30), mY - r(40), r(20), r(20)], ui.x, ui.y) ? '#22ff22' : '#117711';
+                        ctx.fillStyle = ui.cmi([mX + r(200 - 30), mY - r(40), r(20), r(20)], ui.x, ui.y) ? '#2f2' : '#171';
                         ctx.fillRect(mX + r(200 - 30), mY - r(40), r(20), r(20));
-                        ctx.fillStyle = '#ffffff';
+                        ctx.fillStyle = '#fff';
                         ctx.fillText("✔", mX + r(200 - 25), mY - r(25));
                         ctx.strokeRect(mX + r(200 - 30), mY - r(40), r(20), r(20));
 
@@ -328,9 +351,9 @@ class Map {
                                 bt: `s-${s.id}`, //belongs to
                                 pos: [mX + r(200 - 60), mY - r(40), r(20), r(20)],
                                 onClick: (x, y) => {
-                                    Note.new("f#", 3, 0.1, 0.3).play(0.5);
+                                    Note.new("f#", 3, 0.1).play(0.5);
                                     setTimeout(() => {
-                                        Note.new("c#", 3, 0.1, 0.3).play(0.2);
+                                        Note.new("c#", 3, 0.1).play(0.2);
                                     }, 50);
                                     setTimeout(() => {
                                         this.is = this.is.filter(i => i !== s);
@@ -347,9 +370,9 @@ class Map {
                                 bt: `s-${s.id}`,
                                 pos: [mX + r(200 - 30), mY - r(40), r(20), r(20)],
                                 onClick: (x, y) => {
-                                    Note.new("f#", 3, 0.1, 0.3).play(0.5);
+                                    Note.new("f#", 3, 0.1).play(0.5);
                                     setTimeout(() => {
-                                        Note.new("b", 3, 0.1, 0.3).play(0.2);
+                                        Note.new("b", 3, 0.1).play(0.2);
                                     }, 50);
                                     this.is = this.is.filter(i => i.id !== s.id);
                                     s.z = 3;
@@ -390,7 +413,7 @@ class Map {
                     d: selectedItem.d,
                     w: selectedItem.w,
                     h: selectedItem.h,
-                    b: this.isAreaOccupied(x, z, selectedItem.w, selectedItem.d) || resources.c < selectedItem.c ? "#ff000060" : "#aaaa0050"
+                    b: this.isAreaOccupied(x, z, selectedItem.w, selectedItem.d) || resources.c < selectedItem.c ? "#ff000044" : "#aaaa0044"
                 });
             }
             if (selectedItem && selectedItem.t === "plane") {
@@ -406,8 +429,8 @@ class Map {
                         (isDragging ?
                             resources.c < selectedItem.c * ((Math.floor(x < startX ? startX - x : x - startX) + selectedItem.w) * (Math.floor(z < startZ ? startZ - z : z - startZ) + selectedItem.w)) :
                             resources.c < selectedItem.c) ?
-                        "#ff000060" :
-                        "#aaaa0050"
+                        "#ff000044" :
+                        "#aaaa0044"
                 });
             }
             if (!selectedItem) {
@@ -419,7 +442,7 @@ class Map {
                     w: this.scale,
                     d: this.scale,
                     h: 0.1,
-                    b: selectedDemon ? "#000000ff" : "#ffffffaa"
+                    b: selectedDemon ? "#000aa" : "#ffffffaa"
                 });
             }
         }
@@ -428,69 +451,107 @@ class Map {
                 this.mcc.push(this.map[z][x].o);
             }
             if (this.map[z][x].o.do) {
-                this.w.move({ n: `b-${this.map[z][x].o.id}`, b: "ff000060", mix: 1 });
+                this.w.move({ n: `b-${this.map[z][x].o.id}`, b: "ff000044", mix: 0.8 });
             } else {
-                this.w.move({ n: `b-${this.map[z][x].o.id}`, b: "00ff0060", mix: 1 });
+                this.w.move({ n: `b-${this.map[z][x].o.id}`, b: "0f04", mix: 0.8 });
             }
         } else {
-            this.mcc.forEach(m => this.w.move({ n: `b-${m.id}`, b: m.co, mix: 1 }));
+            this.mcc.forEach(m => this.w.move({ n: `b-${m.id}`, mix: 0 }));
             this.mcc = [];
         }
     }
 
-    removeMachine(id) {
-        this.m.filter(m => m.m.id !== id);
-    }
+    // removeMachine(id) {
+    //     this.m.filter(m => m.m.id !== id);
+    //     this.um.filter(m => m.m.id !== id);
+    // }
 
-    drawMap(scale) {
-        for (let j = 0; j < this.map.length; j++) {
-            for (let i = 0; i < this.map[j].length; i++) {
-                if (!this.map[j][i].h) {
-                    this.w.plane({
-                        n: `${j}-${i}`,
-                        g: "map",
-                        x: i * scale,
-                        y: 0,
-                        z: j * scale,
-                        size: scale,
-                        t: this.map[j][i].t,
-                        b: this.map[j][i].b,
-                        mix: int(2, 6) / 10,
-                        rx: -90,
-                        ry: this.map[j][i].r
-                    });
-                    if (this.map[j][i].t === bimg && !j) {
-                        this.w.cube({
-                            g: "map",
-                            x: i * scale,
-                            y: ((this.h / 2) + 5) * scale,
-                            z: j * scale,
-                            h: (this.h - 10) * scale,
-                            w: scale,
-                            d: scale,
-                            t: himg,
-                            b: pick("#661111", "#441111", "#330000"),
-                            mix: int(2, 6) / 10,
-                            ry: this.map[j][i].r
-                        });
-                    }
-                } else {
-                    this.w.cube({
-                        g: "map",
-                        x: i * scale,
-                        y: (this.map[j][i].h / 2) * scale,
-                        z: j * scale,
-                        h: this.map[j][i].h * scale,
-                        w: scale,
-                        d: scale,
-                        t: this.map[j][i].t,
-                        b: this.map[j][i].b,
-                        mix: int(2, 6) / 10,
-                        ry: this.map[j][i].r
-                    });
-                }
-            }
-        }
+    drawMap() {
+        //top right wall
+        this.w.cube({
+            g: "map",
+            x: this.map.length - 1,
+            y: this.h / 2,
+            z: (this.map.length - 1) / 2,
+            w: this.map.length,
+            h: this.h,
+            d: 1,
+            t: whimg,
+            ry: -90
+        });
+        //top-left wall
+        this.w.cube({
+            g: "map",
+            x: (this.map.length - 1) / 2,
+            y: this.h / 2,
+            z: 0,
+            w: this.map.length,
+            h: this.h,
+            d: 1,
+            t: whimg,
+            ry: 0
+        });
+        //bottom left wall
+        this.w.cube({
+            g: "map",
+            x: 0,
+            y: 1,
+            z: (this.map.length - 1) / 2,
+            w: this.map.length,
+            h: 2,
+            d: 1,
+            t: whimg,
+            ry: -90
+        });
+        //bottom-right wall
+        this.w.cube({
+            g: "map",
+            x: (this.map.length - 1) / 2,
+            y: 1,
+            z: this.map.length - 1,
+            w: this.map.length,
+            h: 2,
+            d: 1,
+            t: whimg,
+            ry: 0
+        });
+
+        //floor
+        this.w.plane({
+            g: "map",
+            x: (this.map.length - 1) / 2,
+            y: 0,
+            z: (this.map.length - 1) / 2,
+            size: this.map.length,
+            t: bhimg,
+            rx: -90
+        });
+
+        //entrance
+        this.w.cube({
+            g: "map",
+            x: this.map.length / 2,
+            y: 3,
+            z: 0,
+            w: 3,
+            h: 6,
+            d: 1.1,
+            t: hhimg,
+            ry: 0
+        });
+
+        //entrance floor
+        this.w.cube({
+            g: "map",
+            x: this.map.length / 2,
+            y: 0,
+            z: 2,
+            w: 3,
+            h: 0.05,
+            d: 3,
+            t: fhimg,
+            ry: 0
+        });
     };
 }
 

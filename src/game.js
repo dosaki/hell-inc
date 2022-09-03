@@ -36,7 +36,6 @@ W.add("cube", {
         1, 1, 0, 0, 1, 0
     ]
 });
-W.cube = settings => W.setState(settings, 'cube');
 W.add("plane", {
     vertices: [
         .5, .5, 0, -.5, .5, 0, -.5, -.5, 0,
@@ -49,10 +48,40 @@ W.add("plane", {
     ],
 });
 
+W.add("shadow", {
+    vertices: [
+        .25, .5, 0,
+        -.5, -.5, 0,
+        .5, -.5, 0,
+
+        .25, .5, 0,
+        -.5, .5, 0,
+        -.5, -.5, 0,
+
+        0, 1, 0,
+        -.5, .5, 0,
+        .25, .5, 0
+    ],
+
+    uv: [
+        1, 1,
+        0, 0,
+        1, 0,
+
+        1, 1,
+        0, 1,
+        0, 0,
+
+        0, 1.5,
+        0, 1,
+        1, 1
+    ],
+});
+
 const ortho = (value, near, far) => {
     return new DOMMatrix([
-        2 / (value * 2), 0, 0, 0,
-        0, 2 / (value * 2), 0, 0,
+        1 / value, 0, 0, 0,
+        0, 1 / value, 0, 0,
         0, 0, -2 / (far - near), 0,
         0, 0, -(far + near) / (far - near), 1
     ]);
@@ -61,10 +90,10 @@ const ortho = (value, near, far) => {
 const screenToWorld = (x, y) => W.v.inverse().multiply(W.projection).transformPoint(new DOMPoint(90 * x - 45, 1, 180 * y - 134));
 
 [...document.querySelectorAll('button')].forEach(btn => btn.addEventListener("mouseenter", () => {
-    Note.new("c#", 2, 0.05, 0.1).play();
+    Note.new("c#", 2, 0.05).play();
 }));
 [...document.querySelectorAll('button')].forEach(btn => btn.addEventListener("click", () => {
-    Note.new("f#", 4, 0.05, 0.1).play(0.5);
+    Note.new("f#", 4, 0.05).play(0.5);
 }));
 
 cg.width = windowSize;
@@ -73,7 +102,7 @@ ui.s = windowSize;
 W.reset(cg);
 W.light({ x: 0.2, y: -1, z: -0.6 });
 W.ambient(0.1);
-W.clearColor("#000000");
+W.clearColor("#000");
 
 ct.width = windowSize;
 ct.height = windowSize;
@@ -191,9 +220,9 @@ ct.oncontextmenu = (e) => {
     if (mX && mY) {
         ui.doRightClicks(mX, mY);
         map.doRightClicks();
-        Note.new("b", 3, 0.1, 0.3).play(0.5);
+        Note.new("b", 3, 0.1).play(0.5);
         setTimeout(() => {
-            Note.new("b", 3, 0.1, 0.3).play(0.2);
+            Note.new("b", 3, 0.1).play(0.2);
         }, 50);
     }
 };
@@ -212,13 +241,23 @@ setInterval(() => {
     goUp = !goUp;
 }, 250);
 
+// // background heartbeat
+// setInterval(() => {
+//     setTimeout(() => {
+//         Note.new("c#", 1, 0.5).play(1);
+//         setTimeout(() => {
+//             Note.new("c#", 0, 1).play(1);
+//         }, 200);
+//     }, 0);
+// }, 5000);
+
 let lastDate = new Date().getTime();
 let machinesLastUpdated = new Date().getTime();
 let gameLost = false;
 let wasGameLost = false;
 let gameLostReason = "";
 const main = function () {
-    gameLostReason = resources.m <= -100 ? "much misery debt" : (resources.ds > resources.md ? "many destroyed souls" : (resources.sd > resources.md ? "many declined souls" : ""));
+    gameLostReason = resources.m <= -100 ? "too much misery debt" : (resources.ds > resources.md ? "destroyed too many souls" : (resources.sd > resources.md ? "declined too many souls" : ""));
     gameLost = !!gameLostReason;
     const now = new Date().getTime();
     tutorialCtx.clearRect(0, 0, cui.width, cui.height);
@@ -228,7 +267,7 @@ const main = function () {
     map.ups();
 
     if (isTutorial) {
-        tutorialCtx.fillStyle = gameLost ? "#00000033" : "#000000cc";
+        tutorialCtx.fillStyle = gameLost ? "#0003" : "#000c";
         tutorialCtx.fillRect(0, 0, cui.width, cui.height);
         if (tutorialSteps[0]) {
             let rect = [0, 0, 0, 0];
@@ -240,7 +279,7 @@ const main = function () {
                 }
                 tutorialCtx.clearRect(...rect.map(value => ui.r(value)));
             }
-            tutorialCtx.fillStyle = "#ffffff";
+            tutorialCtx.fillStyle = "#fff";
             tutorialCtx.font = `${ui.r(24)}px luminari, fantasy`;
             const measurement = tutorialCtx.measureText(tutorialSteps[0].m);
             tutorialCtx.fillText(tutorialSteps[0].m,
@@ -253,7 +292,7 @@ const main = function () {
                 tutorialCtx.lineTo(
                     ui.r(tutorialSteps[0].cpu === true ? rect[0] + (rect[2] / 2) + tutorialSteps[0].al[0] : tutorialSteps[0].al[0]),
                     ui.r(tutorialSteps[0].cpu === true ? rect[1] + (rect[3] / 2) + tutorialSteps[0].al[1] : tutorialSteps[0].al[1]));
-                tutorialCtx.strokeStyle = "#ffffff";
+                tutorialCtx.strokeStyle = "#fff";
                 tutorialCtx.stroke();
             }
             if (tutorialSteps[0].at) {
@@ -262,7 +301,7 @@ const main = function () {
                 tutorialCtx.lineTo(
                     ui.r(tutorialSteps[0].cpu === true ? rect[0] + (rect[2] / 2) + tutorialSteps[0].at[0] : tutorialSteps[0].at[0]),
                     ui.r(tutorialSteps[0].cpu === true ? rect[1] + rect[3] + tutorialSteps[0].at[1] : tutorialSteps[0].at[1]));
-                tutorialCtx.strokeStyle = "#ffffff";
+                tutorialCtx.strokeStyle = "#fff";
                 tutorialCtx.stroke();
             }
             if (tutorialSteps[0].ar) {
@@ -273,7 +312,7 @@ const main = function () {
                 tutorialCtx.lineTo(
                     ui.r(tutorialSteps[0].cpu === true ? rect[0] + (rect[2] / 2) + tutorialSteps[0].ar[0] : tutorialSteps[0].ar[0]),
                     ui.r(tutorialSteps[0].cpu === true ? rect[1] + (rect[3] / 2) + tutorialSteps[0].ar[1] : tutorialSteps[0].ar[1]));
-                tutorialCtx.strokeStyle = "#ffffff";
+                tutorialCtx.strokeStyle = "#fff";
                 tutorialCtx.stroke();
             }
         } else {
@@ -288,7 +327,7 @@ const main = function () {
 
     if (!gameLost && now - machinesLastUpdated >= 1000) {
         map.updateMachines();
-        map.sl.forEach(s => s.u());
+        map.sl.forEach(s => s.u(isTutorial));
         machinesLastUpdated = now;
     }
     if (!gameLost) {
@@ -302,7 +341,19 @@ const main = function () {
     if (gameLost && gameLost !== wasGameLost) {
         isTutorial = true;
         tutorialSteps = [];
-        tutorialSteps.push({ m: `You've got too ${gameLostReason}!`, pgc: true });
+        tutorialSteps.push({ m: `You have ${gameLostReason}!`, pgc: true });
+        setTimeout(() => {
+            Note.new("c#", 4, 0.5).play(0.5);
+            setTimeout(() => {
+                Note.new("b#", 3, 1).play(0.5);
+                setTimeout(() => {
+                    Note.new("f#", 3, 1).play(0.5);
+                    setTimeout(() => {
+                        Note.new("c#", 3, 1).play(0.5);
+                    }, 100);
+                }, 350);
+            }, 250);
+        }, 0);
     }
     if (gameLost && tutorialSteps.length > 0) {
         tutorialSteps.push({ m: "You're fired!", pgc: true });

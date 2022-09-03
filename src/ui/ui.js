@@ -70,9 +70,9 @@ class Ui {
         this.wpu.forEach(wp => {
             if (!wp.hasPoppedUp) {
                 setTimeout(() => {
-                    Note.new("c#", 4, 0.1, 0.3).play(0.5);
+                    Note.new("c#", 4, 0.1).play(0.5);
                     setTimeout(() => {
-                        Note.new("f#", 4, 0.1, 0.3).play(0.5);
+                        Note.new("f#", 4, 0.1).play(0.5);
                     }, 50);
                 }, 0);
             }
@@ -86,12 +86,12 @@ class Ui {
      * @param {*} ctx 
      */
     di(ctx) {
-        ctx.fillStyle = '#221111';
-        ctx.strokeStyle = '#997777';
+        ctx.fillStyle = '#211';
+        ctx.strokeStyle = '#977';
         ctx.fillRect(0, ctx.canvas.height - this.r(250), ctx.canvas.width, this.r(250));
         ctx.strokeRect(0, ctx.canvas.height - this.r(250), ctx.canvas.width, this.r(250));
 
-        ctx.fillStyle = '#ffeeee';
+        ctx.fillStyle = '#fee';
         ctx.font = `${this.r(16)}px luminari, fantasy`;
         ctx.fillText(`Balance`, this.r(10), ctx.canvas.height - this.r(80));
         ctx.moveTo(this.r(10), ctx.canvas.height - this.r(76));
@@ -134,12 +134,12 @@ class Ui {
         ctx.fillText(resources.l, this.r(453), ctx.canvas.height - this.r(39));
 
         resources.ml.forEach((m, i) => {
-            ctx.fillStyle = m.rl > resources.l ? '#221919' : '#331111';
-            ctx.strokeStyle = m.rl > resources.l ? '#554545' : '#774444';
+            ctx.fillStyle = m.rl > resources.l ? '#211' : '#311';
+            ctx.strokeStyle = m.rl > resources.l ? '#544' : '#744';
             ctx.fillRect(this.r(15 + (i * 115)), ctx.canvas.height - this.r(235), this.r(100), this.r(100));
             ctx.strokeRect(this.r(15 + (i * 115)), ctx.canvas.height - this.r(235), this.r(100), this.r(100));
 
-            ctx.fillStyle = m.rl > resources.l ? '#887777' : '#ffdddd';
+            ctx.fillStyle = m.rl > resources.l ? '#877' : '#fdd';
             ctx.font = `${this.r(16)}px luminari, fantasy`;
             let n = [m.n];
             const txt = ctx.measureText(m.n);
@@ -155,14 +155,14 @@ class Ui {
                     onHover: (x, y) => {
                         m.isHovering = true;
                         if (!m.playedSound) {
-                            Note.new("c#", 2, 0.05, 0.1).play();
+                            Note.new("c#", 2, 0.05).play();
                         }
                         m.playedSound = true;
                     },
                     onClick: (x, y) => {
                         if (m.rl <= resources.l) {
                             this.si = m;
-                            Note.new("f#", 4, 0.05, 0.15).play(0.5);
+                            Note.new("f#", 4, 0.05).play(0.5);
                         }
                     },
                     onMouseOut: () => {
@@ -174,12 +174,12 @@ class Ui {
 
         resources.dl.forEach((d, i) => {
             ctx.imageSmoothingEnabled = false;
-            ctx.strokeStyle = d.mc > resources.m ? '#554545' : this.sd === d ? '#ffff00' : '#774444';
+            ctx.strokeStyle = d.mc > resources.m ? '#544' : this.sd === d ? '#ff0' : '#744';
             ctx.filter = `hue-rotate(${d.hr}deg)`;
             ctx.drawImage(dimg, ctx.canvas.width - this.r(235) + this.r(((i % 2) * 120)), ctx.canvas.height - this.r(235) + this.r((Math.floor(i / 2) * 120)), this.r(100), this.r(100));
             ctx.filter = "none";
             if (d.mc > resources.m) {
-                ctx.fillStyle = '#33333380';
+                ctx.fillStyle = '#3338';
                 ctx.fillRect(ctx.canvas.width - this.r(235) + this.r(((i % 2) * 120)), ctx.canvas.height - this.r(235) + this.r((Math.floor(i / 2) * 120)), this.r(100), this.r(100));
             }
             ctx.strokeRect(ctx.canvas.width - this.r(235) + this.r(((i % 2) * 120)), ctx.canvas.height - this.r(235) + this.r((Math.floor(i / 2) * 120)), this.r(100), this.r(100));
@@ -190,13 +190,13 @@ class Ui {
                     onHover: (x, y) => {
                         d.isHovering = true;
                         if (!d.playedSound) {
-                            Note.new("c#", 2, 0.05, 0.15).play();
+                            Note.new("c#", 2, 0.05).play();
                         }
                         d.playedSound = true;
                     },
                     onClick: (x, y) => {
                         this.sd = d;
-                        Note.new("f#", 4, 0.05, 0.15).play(0.5);
+                        Note.new("f#", 4, 0.05).play(0.5);
                     },
                     onMouseOut: () => {
                         d.playedSound = false;
@@ -209,22 +209,22 @@ class Ui {
         resources.ml.forEach((m, i) => {
             if (m.isHovering) {
                 if (m.rl <= resources.l) {
-                    ctx.fillStyle = '#ffaaaa20';
+                    ctx.fillStyle = '#faa2';
                     ctx.fillRect(this.r(15 + (i * 115)), ctx.canvas.height - this.r(235), this.r(100), this.r(100));
                 }
-                ctx.fillStyle = m.rl > resources.l ? '#221919' : '#331111';
-                ctx.strokeStyle = m.rl > resources.l ? '#554545' : '#774444';
+                ctx.fillStyle = m.rl > resources.l ? '#211' : '#311';
+                ctx.strokeStyle = m.rl > resources.l ? '#544' : '#744';
                 ctx.fillRect(this.x, this.y - this.r(100), this.r(200), this.r(100));
                 ctx.strokeRect(this.x, this.y - this.r(100), this.r(200), this.r(100));
 
-                ctx.fillStyle = m.rl > resources.l ? '#887777' : '#ffdddd';
+                ctx.fillStyle = m.rl > resources.l ? '#877' : '#fdd';
                 ctx.font = `${this.r(16)}px luminari, fantasy`;
                 ctx.fillText(m.n, this.x + this.r(10), this.y - this.r(78));
                 ctx.font = `${this.r(14)}px luminari, fantasy`;
                 ctx.fillText(`Level: ${m.rl}`, this.x + this.r(190) - ctx.measureText(`Level: ${m.rl}`).width, this.y - this.r(78));
-                ctx.fillStyle = m.c > resources.c ? '#FF0000' : (m.rl > resources.l ? '#887777' : '#ffdddd');
+                ctx.fillStyle = m.c > resources.c ? '#f00' : (m.rl > resources.l ? '#877' : '#fdd');
                 ctx.fillText(`Cost: ${m.c} coins`, this.x + this.r(10), this.y - this.r(50));
-                ctx.fillStyle = m.rl > resources.l ? '#887777' : '#ffdddd';
+                ctx.fillStyle = m.rl > resources.l ? '#877' : '#fdd';
                 if (m.mt) {
                     ctx.fillText(`Misery: +${m.mt}`, this.x + this.r(10), this.y - this.r(32));
                 }
@@ -238,15 +238,15 @@ class Ui {
         resources.dl.forEach((d, i) => {
             if (d.isHovering) {
                 if (d.mc <= resources.m) {
-                    ctx.fillStyle = '#ffaaaa40';
+                    ctx.fillStyle = '#faa4';
                     ctx.fillRect(ctx.canvas.width - this.r(235) + this.r(((i % 2) * 120)), ctx.canvas.height - this.r(235) + this.r((Math.floor(i / 2) * 120)), this.r(100), this.r(100));
                 }
-                ctx.fillStyle = d.mc > resources.m ? '#221919' : '#331111';
-                ctx.strokeStyle = d.mc > resources.m ? '#554545' : '#774444';
+                ctx.fillStyle = d.mc > resources.m ? '#211' : '#311';
+                ctx.strokeStyle = d.mc > resources.m ? '#544' : '#744';
                 ctx.fillRect(this.x - this.r(200), this.y - this.r(100), this.r(200), this.r(100));
                 ctx.strokeRect(this.x - this.r(200), this.y - this.r(100), this.r(200), this.r(100));
 
-                ctx.fillStyle = d.mc > resources.m ? '#887777' : '#ffdddd';
+                ctx.fillStyle = d.mc > resources.m ? '#877' : '#fdd';
                 ctx.font = `${this.r(16)}px luminari, fantasy`;
                 ctx.fillText(d.n, this.x - this.r(190), this.y - this.r(75));
                 ctx.font = `${this.r(14)}px luminari, fantasy`;

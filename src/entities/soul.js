@@ -1,3 +1,4 @@
+import { Note } from '../utils/audio-utils';
 import { int, pick } from '../utils/random-utils';
 import resources from './resources';
 
@@ -16,17 +17,37 @@ class Soul {
         this.g = null; // goal
         this.lg = 0; // last selected a goal
         this.p = []; // path to goal
-        this.d = false; // is dead
+        this._d = false; // is dead
         this.im = false; // is moving
         this.om = 0; // old misery
         this.mlc = 0; // misery last changed
+        this.rm = !int(0, 20) && this._s ? int(3,6) : 0; // requires specific machine
+    }
+
+    get d() {
+        return this._d;
+    }
+
+    set d(value) {
+        if (value !== this._d) {
+            setTimeout(() => {
+                Note.new("b", 3, 0.5).play(0.5);
+                setTimeout(() => {
+                    Note.new("b", 2, 0.3).play(0.5);
+                }, 200);
+            }, 0);
+            this._d = value;
+        }
     }
 
     get md() {
         return 1 + (10 * this._s * 0.5);
     }
 
-    u() {
+    u(isTutorial) {
+        if (isTutorial) {
+            return;
+        }
         this.mlc = this.om !== this.m ? 0 : this.mlc + 1;
         // console.log(this.mlc);
         this.d = this.mlc > 30;
@@ -55,7 +76,7 @@ class Soul {
             // console.log("finding goal...");
             if (!this.g && this.m < 10) {
                 // console.log(this.id, "Finding new goal...");
-                this.g = pick(...machines.filter(m => (!m.m.nd || m.m.do) && m.m.t !== "plane" && m.m.n !== "Misery Extractor" && !m.m.s));
+                this.g = pick(...machines.filter(m => (!m.m.nd || m.m.do) && m.m.t !== "plane" && m.m.n !== "Misery Extractor" && !m.m.s && (!this.rm || this.rm && m.m.n === resources.ml[this.rm].n)));
             }
             if (this.m >= (10 * this._s * 0.5)) {
                 // console.log(this.id, "Finding Extractor...");
