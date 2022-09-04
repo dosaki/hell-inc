@@ -20,7 +20,7 @@ class Ui {
     }
 
     r = (size) => {
-        return this.s < 1100 ? (size * this.s) / 1100 : size;
+        return (size * this.s) / 1100;
     };
 
     /**

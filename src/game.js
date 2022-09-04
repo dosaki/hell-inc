@@ -4,7 +4,7 @@ import { int } from './utils/random-utils';
 import { Note } from './utils/audio-utils';
 import resources from './entities/resources';
 const W = window.W;
-const windowSize = Math.min(1100, Math.min(window.innerWidth, window.innerHeight));
+const windowSize = Math.min(window.innerWidth, window.innerHeight);
 
 W.add("cube", {
     vertices: [
@@ -143,7 +143,7 @@ let tutorialSteps = [
     { m: "Paths let them travel faster", clear: [10, 856, 115, 115], al: [67, 856], pgc: true },
     { m: "Click your Dispair Room", clear: [422, 311, 70, 70], at: [457, 381], cc: true, rwp: true },
     { m: "This shows if the machine is working and who operates it", clear: [0, 0, 0, 0], at: [0, 0], cpu: true, pgc: true },
-    { m: "When the soul's misery is full you can extract it", clear: [105, 0, -160, 0], at: [0, 0], cpu: true, pgc: true },
+    { m: "When the soul's misery is full you can extract it\nYou may need to wait a bit for the soul to reach the machine", clear: [105, 0, -160, 0], at: [0, 0], cpu: true, pgc: true },
     { m: "Build a Misery Extractor", clear: [120, 856, 115, 115], al: [177, 856], cc: true },
     { m: "Then click your pit", clear: [522, 411, 70, 70], at: [557, 481], cc: true },
     { m: "Now employ a demon for it", clear: [854, 856, 236, 236], ar: [972, 856], cc: true },
@@ -290,11 +290,15 @@ const main = function () {
             }
             tutorialCtx.fillStyle = "#fff";
             tutorialCtx.font = `${ui.r(24, 13)}px luminari, fantasy`;
-            const measurement = tutorialCtx.measureText(tutorialSteps[0].m);
-            tutorialCtx.fillText(tutorialSteps[0].m,
-                windowSize / 2 - measurement.width / 2,
-                windowSize / 2);
+            const messages = tutorialSteps[0].m.split("\n");
+            messages.forEach((message, i) => {
+                const messageWidth = tutorialCtx.measureText(message).width;
+                tutorialCtx.fillText(message,
+                    windowSize / 2 - messageWidth / 2,
+                    windowSize / 2 + i * ui.r(25, 14));
+            });
             tutorialCtx.strokeStyle = "#fff";
+            const measurement = tutorialCtx.measureText(messages[0]);
             if (tutorialSteps[0].al) {
                 tutorialCtx.beginPath();
                 tutorialCtx.moveTo((windowSize / 2 - measurement.width / 2) - ui.r(10), (windowSize / 2) - ui.r(24) / 2);
