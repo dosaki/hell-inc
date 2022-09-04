@@ -130,26 +130,35 @@ let tutorialSteps = [
     { m: "This is the soul waiting area", clear: [321, 349, 60, 50], al: [351, 399], pgc: true },
     { m: "Click this soul", clear: [333, 376, 20, 25], al: [344, 396], cc: true, rwp: true },
     { m: "Sinful souls give you more misery but they can lie about their sins", clear: [3, 3, -176, -2], at: [0, 0], cpu: true, pgc: true },
-    { m: "This gives you more info about this soul", clear: [45, 5, -48, -30], at: [0, 0], cpu: true, pgc: true },
-    { m: "Weak souls may perish during torture, so you want sturdy ones", clear: [45, 5, -48, -30], at: [0, 0], cpu: true, pgc: true },
+    { m: "This gives you more info about this soul", clear: [30, 0, -38, -30], at: [0, 0], cpu: true, pgc: true },
+    { m: "Weak souls may perish during torture, so you want sturdy ones", clear: [30, 0, -38, -30], at: [0, 0], cpu: true, pgc: true },
     { m: "Souls perish if waiting for too long", pgc: true },
     { m: "Don't let souls perish without extracting misery!", pgc: true },
     { m: "Click ✔ to accept this soul", clear: [165, 65, -170, -70], at: [0, 0], cpu: true, cc: true },
     { m: "The soul gave you some coins. You now have 22 coins!", clear: [3, 1000, 110, 70], al: [58, 1000], pgc: true },
-    { m: "It's got nowhere to go, so it's waiting", clear: [321, 349, 60, 50], al: [351, 399], pgc: true },
+    { m: "It has nowhere to go, so it's waiting until there is an available machine", clear: [321, 349, 60, 50], at: [351, 399], pgc: true },
     { m: "Click the Dispair Room", clear: [236, 856, 115, 115], al: [293, 856], cc: true },
     { m: "Then click your pit", clear: [422, 311, 70, 70], at: [457, 381], cc: true },
     { m: "The soul will slowly travel to the machine", pgc: true },
     { m: "Paths let them travel faster", clear: [10, 856, 115, 115], al: [67, 856], pgc: true },
     { m: "Click your Dispair Room", clear: [422, 311, 70, 70], at: [457, 381], cc: true, rwp: true },
     { m: "This shows if the machine is working and who operates it", clear: [0, 0, 0, 0], at: [0, 0], cpu: true, pgc: true },
-    { m: "When the soul's misery is full you can extract it", pgc: true },
+    { m: "When the soul's misery is full you can extract it", clear: [105, 0, -160, 0], at: [0, 0], cpu: true, pgc: true },
     { m: "Build a Misery Extractor", clear: [120, 856, 115, 115], al: [177, 856], cc: true },
     { m: "Then click your pit", clear: [522, 411, 70, 70], at: [557, 481], cc: true },
     { m: "Now employ a demon for it", clear: [854, 856, 236, 236], ar: [972, 856], cc: true },
     { m: "Then click your Misery Extractor", clear: [522, 411, 70, 70], at: [557, 481], cc: true },
     { m: "That concludes your training. Have a miserable time!", pgc: true }
-];
+].map(t => {
+    const _t = { ...t };
+    ["clear", "al", "at", "ar"].forEach(prop => {
+        if (prop in _t) {
+            _t[prop] = _t[prop].map(v => ui.r(v));
+        }
+    });
+    return _t;
+});
+
 const uiCtx = cui.getContext('2d');
 ct.addEventListener("mousemove", (e) => {
     isDragging = eventType === "mousedown" || (isDragging && eventType === "hover");
@@ -277,42 +286,40 @@ const main = function () {
                 } else {
                     rect = tutorialSteps[0].clear;
                 }
-                tutorialCtx.clearRect(...rect.map(value => ui.r(value)));
+                tutorialCtx.clearRect(...rect);
             }
             tutorialCtx.fillStyle = "#fff";
-            tutorialCtx.font = `${ui.r(24)}px luminari, fantasy`;
+            tutorialCtx.font = `${ui.r(24, 13)}px luminari, fantasy`;
             const measurement = tutorialCtx.measureText(tutorialSteps[0].m);
             tutorialCtx.fillText(tutorialSteps[0].m,
                 windowSize / 2 - measurement.width / 2,
                 windowSize / 2);
+            tutorialCtx.strokeStyle = "#fff";
             if (tutorialSteps[0].al) {
                 tutorialCtx.beginPath();
                 tutorialCtx.moveTo((windowSize / 2 - measurement.width / 2) - ui.r(10), (windowSize / 2) - ui.r(24) / 2);
-                tutorialCtx.lineTo(ui.r(tutorialSteps[0].cpu === true ? rect[0] + (rect[2] / 2) + tutorialSteps[0].al[0] : tutorialSteps[0].al[0]), (windowSize / 2) - ui.r(24) / 2);
+                tutorialCtx.lineTo(tutorialSteps[0].cpu === true ? rect[0] + (rect[2] / 2) + tutorialSteps[0].al[0] : tutorialSteps[0].al[0], (windowSize / 2) - ui.r(24) / 2);
                 tutorialCtx.lineTo(
-                    ui.r(tutorialSteps[0].cpu === true ? rect[0] + (rect[2] / 2) + tutorialSteps[0].al[0] : tutorialSteps[0].al[0]),
-                    ui.r(tutorialSteps[0].cpu === true ? rect[1] + (rect[3] / 2) + tutorialSteps[0].al[1] : tutorialSteps[0].al[1]));
-                tutorialCtx.strokeStyle = "#fff";
+                    tutorialSteps[0].cpu === true ? rect[0] + (rect[2] / 2) + tutorialSteps[0].al[0] : tutorialSteps[0].al[0],
+                    tutorialSteps[0].cpu === true ? rect[1] + (rect[3] / 2) + tutorialSteps[0].al[1] : tutorialSteps[0].al[1]);
                 tutorialCtx.stroke();
             }
             if (tutorialSteps[0].at) {
                 tutorialCtx.beginPath();
-                tutorialCtx.moveTo(ui.r(tutorialSteps[0].cpu === true ? rect[0] + (rect[2] / 2) + tutorialSteps[0].at[0] : tutorialSteps[0].at[0]), (windowSize / 2) - ui.r(24));
+                tutorialCtx.moveTo(tutorialSteps[0].cpu === true ? rect[0] + (rect[2] / 2) + tutorialSteps[0].at[0] : tutorialSteps[0].at[0], (windowSize / 2) - ui.r(24));
                 tutorialCtx.lineTo(
-                    ui.r(tutorialSteps[0].cpu === true ? rect[0] + (rect[2] / 2) + tutorialSteps[0].at[0] : tutorialSteps[0].at[0]),
-                    ui.r(tutorialSteps[0].cpu === true ? rect[1] + rect[3] + tutorialSteps[0].at[1] : tutorialSteps[0].at[1]));
-                tutorialCtx.strokeStyle = "#fff";
+                    tutorialSteps[0].cpu === true ? rect[0] + (rect[2] / 2) + tutorialSteps[0].at[0] : tutorialSteps[0].at[0],
+                    tutorialSteps[0].cpu === true ? rect[1] + rect[3] + tutorialSteps[0].at[1] : tutorialSteps[0].at[1]);
                 tutorialCtx.stroke();
             }
             if (tutorialSteps[0].ar) {
                 tutorialCtx.beginPath();
                 tutorialCtx.moveTo((windowSize / 2 + measurement.width / 2) + ui.r(10), (windowSize / 2) - ui.r(24) / 2);
-                tutorialCtx.lineTo(ui.r(tutorialSteps[0].cpu === true ? rect[0] + (rect[2] / 2) + tutorialSteps[0].ar[0] : tutorialSteps[0].ar[0]), (windowSize / 2) - ui.r(24) / 2);
+                tutorialCtx.lineTo(tutorialSteps[0].cpu === true ? rect[0] + (rect[2] / 2) + tutorialSteps[0].ar[0] : tutorialSteps[0].ar[0], (windowSize / 2) - ui.r(24) / 2);
                 tutorialCtx.lineTo(tutorialSteps[0].ar[0], (windowSize / 2) - ui.r(24) / 2);
                 tutorialCtx.lineTo(
-                    ui.r(tutorialSteps[0].cpu === true ? rect[0] + (rect[2] / 2) + tutorialSteps[0].ar[0] : tutorialSteps[0].ar[0]),
-                    ui.r(tutorialSteps[0].cpu === true ? rect[1] + (rect[3] / 2) + tutorialSteps[0].ar[1] : tutorialSteps[0].ar[1]));
-                tutorialCtx.strokeStyle = "#fff";
+                    tutorialSteps[0].cpu === true ? rect[0] + (rect[2] / 2) + tutorialSteps[0].ar[0] : tutorialSteps[0].ar[0],
+                    tutorialSteps[0].cpu === true ? rect[1] + (rect[3] / 2) + tutorialSteps[0].ar[1] : tutorialSteps[0].ar[1]);
                 tutorialCtx.stroke();
             }
         } else {

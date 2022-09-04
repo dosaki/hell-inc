@@ -5,6 +5,7 @@ import Demon from './demon';
 import resources from './resources';
 import Soul from './soul';
 import { createPerlinImage } from '../utils/perlin';
+import { wrap } from '../utils/string-utils';
 
 const bhimg = createPerlinImage(100, [0]);
 const whimg = createPerlinImage(50, [0]);
@@ -183,11 +184,11 @@ class Map {
         if (m.t !== "plane") {
             this.w.shadow({
                 n: `sh-b${x}${z}`,
-                x: x - ((Math.sqrt(Math.pow(width, 2) + Math.pow(depth, 2)) / 6) + m.h/16),
+                x: x - ((Math.sqrt(Math.pow(width, 2) + Math.pow(depth, 2)) / 6) + m.h / 16),
                 y: 0.1,
-                z: z - ((Math.sqrt(Math.pow(width, 2) + Math.pow(depth, 2)) / 6) + m.h/16),
+                z: z - ((Math.sqrt(Math.pow(width, 2) + Math.pow(depth, 2)) / 6) + m.h / 16),
                 w: Math.sqrt(Math.pow(width, 2) + Math.pow(depth, 2)),
-                h: m.h/8 + Math.sqrt(Math.pow(width, 2) + Math.pow(depth, 2)) / 2,
+                h: m.h / 8 + Math.sqrt(Math.pow(width, 2) + Math.pow(depth, 2)) / 2,
                 b: '#00000099',
                 ry: 45,
                 rx: -90
@@ -294,14 +295,14 @@ class Map {
                         ctx.strokeRect(mX + r(10), mY - r(75), r(55), r(55));
 
                         if (this.map[z][x].o.s && !this.map[z][x].o.s.d) {
-                            ctx.drawImage(simg, mX + r(75), mY - r(75), 35, 55);
+                            ctx.drawImage(simg, mX + r(75), mY - r(75), r(35), r(55));
                             ctx.fillStyle = '#fff';
-                            ctx.fillText("Mis", mX + r(110), mY - r(75));
+                            ctx.fillText("Mis", mX + r(110), mY - r(70));
                             ctx.fillStyle = '#fff6';
-                            ctx.fillRect(mX + r(110), mY - r(70), r(12), r(50));
+                            ctx.fillRect(mX + r(110), mY - r(65), r(12), r(45));
                             ctx.fillStyle = '#80f';
-                            ctx.fillRect(mX + r(110), mY - r(70 - (50 - ((this.map[z][x].o.s.m * 50) / this.map[z][x].o.s.md))), r(12), r((this.map[z][x].o.s.m * 50) / this.map[z][x].o.s.md)); //(sin * meterHeight) / maxSin
-                            ctx.strokeRect(mX + r(110), mY - r(70), r(12), r(50));
+                            ctx.fillRect(mX + r(110), mY - r(65 - (45 - ((this.map[z][x].o.s.m * 45) / this.map[z][x].o.s.md))), r(12), r((this.map[z][x].o.s.m * 45) / this.map[z][x].o.s.md)); //(sin * meterHeight) / maxSin
+                            ctx.strokeRect(mX + r(110), mY - r(65), r(12), r(45));
                         }
                     }
                 };
@@ -318,23 +319,22 @@ class Map {
 
                         ctx.fillStyle = '#fff';
                         ctx.font = `${r(10)}px luminari, fantasy`;
-                        ctx.fillText("Sin", mX + 10, mY - r(90));
+                        ctx.fillText("Sin", mX + r(10), mY - r(90));
                         ctx.fillStyle = '#fff6';
-                        ctx.fillRect(mX + 10, mY - r(80), r(12), r(60));
+                        ctx.fillRect(mX + r(10), mY - r(80), r(12), r(60));
                         ctx.fillStyle = '#f00';
-                        ctx.fillRect(mX + 10, mY - r(80 - (60 - ((s.s * 60) / s.md))), r(12), r((s.s * 60) / s.md)); //(sin * meterHeight) / maxSin
-                        ctx.strokeRect(mX + 10, mY - r(80), r(12), r(60));
+                        ctx.fillRect(mX + r(10), mY - r(80 - (60 - ((s.s * 60) / s.md))), r(12), r((s.s * 60) / s.md)); //(sin * meterHeight) / maxSin
+                        ctx.strokeRect(mX + r(10), mY - r(80), r(12), r(60));
 
-                        ctx.font = `${r(12)}px luminari, fantasy`;
+                        ctx.font = "12px luminari, fantasy";
                         ctx.fillStyle = '#fff';
-                        ctx.fillText(s.desch, mX + 54, mY - r(90));
-                        ctx.fillText(s.descs, mX + 54, mY - r(75));
+                        wrap(ctx, s.desc, r(155)).forEach((t, i) => ctx.fillText(t, mX + r(35), mY - (r(90) - (12 * i))));
 
                         if (s.rm) {
-                            ctx.fillText(`Needs: ${resources.ml[s.rm].n}`, mX + 54, mY - r(50));
+                            ctx.fillText(`Needs: ${resources.ml[s.rm].n}`, mX + r(35), mY - r(50));
                         }
 
-                        ctx.fillText(`Coins: ${s.c}`, mX + 54, mY - r(23));
+                        ctx.fillText(`Coins: ${s.c}`, mX + r(35), mY - r(23));
 
                         ctx.fillStyle = ui.cmi([mX + r(200 - 60), mY - r(40), r(20), r(20)], ui.x, ui.y) ? '#f22' : '#711';
                         ctx.fillRect(mX + r(200 - 60), mY - r(40), r(20), r(20));

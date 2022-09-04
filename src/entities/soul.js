@@ -21,7 +21,7 @@ class Soul {
         this.im = false; // is moving
         this.om = 0; // old misery
         this.mlc = 0; // misery last changed
-        this.rm = !int(0, 20) && this._s ? int(3,6) : 0; // requires specific machine
+        this.rm = !int(0, 20) && this._s ? int(3, 6) : 0; // requires specific machine
     }
 
     get d() {
@@ -90,19 +90,18 @@ class Soul {
         }
     }
 
-    get desch() { // honesty description
-        return ["They",
-            this.h < 3 ? "seem dishonest" :
-                this.h < 5 ? "seem a bit dishonest" :
-                    this.h < 7 ? "seem honest enough" :
-                        "seem honest"].join(" ");
-    }
-
-    get descs() { // soul strength description
-        return this.cod < 7 ? "and strong willed" :
+    get desc() { // honesty description
+        const strengthDescription = this.cod < 7 ? "and strong willed" :
             this.cod < 15 ? "and sturdy" :
                 this.cod < 25 ? "and sensitive" :
                     "and very weak";
+        const honestyDescription = this.h < 3 ? "seem dishonest" :
+            this.h < 5 ? "seem a bit dishonest" :
+                this.h < 7 ? "seem honest enough" :
+                    "seem honest";
+        return ["They",
+            honestyDescription,
+            strengthDescription].join(" ");
     }
 }
 
