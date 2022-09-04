@@ -23,7 +23,7 @@ class Resources {
     }
 
     get l() { // level
-        return Math.floor(Math.sqrt(this.se + 15) / Math.sqrt(10));
+        return Math.floor(Math.sqrt(this.se + 15) / 2.1);
     }
 
     get md() { //maximum destroyed souls
