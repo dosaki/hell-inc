@@ -20,7 +20,7 @@ class Ui {
     }
 
     r = (size) => {
-        return this.s < 1100 ? (size * this.s) / 1100 : size;
+        return (size * this.s) / 1100;
     };
 
     /**
@@ -123,7 +123,7 @@ class Ui {
         ctx.fillText(`${resources.ds} / ${resources.md}`, this.r(350), ctx.canvas.height - this.r(38));
 
         ctx.fillText(`Cycle`, this.r(10), ctx.canvas.height - this.r(10));
-        ctx.fillRect(this.r(55), ctx.canvas.height - this.r(20), this.c/100, this.r(10));
+        ctx.fillRect(this.r(55), ctx.canvas.height - this.r(20), this.c / 100, this.r(10));
         ctx.strokeRect(this.r(55), ctx.canvas.height - this.r(20), 100, this.r(10));
 
         ctx.fillText(`Level`, this.r(453), ctx.canvas.height - this.r(80));
