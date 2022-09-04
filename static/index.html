@@ -31,10 +31,7 @@
             grid-column: 1;
             background: transparent;
         }
-        [n] {
-            display: none;
-        }
-        #menu {
+        [m] {
             background: #211;
             color: #fff;
             display: flex;
@@ -58,6 +55,9 @@
         button:hover {
             background:#933;
         }
+        [n] {
+            display: none;
+        }
     </style>
 </head>
 
@@ -66,7 +66,7 @@
     <img src=img/d.png id=dimg n>
     <div b>
         <div c>
-            <div id="menu">
+            <div id="menu" m>
                 <h1>Hell Inc.</h1>
                 <button onclick="javascript:window.play(1)">Tutorial</button>
                 <button onclick="javascript:window.play()">Play</button>
