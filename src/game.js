@@ -262,6 +262,7 @@ setInterval(() => {
 
 let lastDate = new Date().getTime();
 let machinesLastUpdated = new Date().getTime();
+let spawnSoulAt = new Date().getTime() + int(3500, 15000);
 let gameLost = false;
 let wasGameLost = false;
 let gameLostReason = "";
@@ -270,9 +271,6 @@ const main = function () {
     gameLost = !!gameLostReason;
     const now = new Date().getTime();
     tutorialCtx.clearRect(0, 0, cui.width, cui.height);
-    if (!gameLost && int(0, 500) >= 495) {
-        map.ss();
-    }
     map.ups();
 
     if (isTutorial) {
@@ -340,6 +338,10 @@ const main = function () {
         map.uma();
         map.sl.forEach(s => s.u(isTutorial));
         machinesLastUpdated = now;
+    }
+    if (!gameLost && now >= spawnSoulAt) {
+        map.ss();
+        spawnSoulAt = now + int(3500, 15000);
     }
     if (!gameLost) {
         ui.c = Math.min(ui.c + (now - lastDate) || 0, 10000);
