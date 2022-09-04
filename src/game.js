@@ -128,7 +128,7 @@ let tutorialSteps = [
     { m: "You've been hand-plucked from the demonic masses to manage this hell pit", pgc: true },
     { m: "We'll be monitoring your misery extraction progress", clear: [125, 1000, 300, 70], al: [208, 1000], pgc: true },
     { m: "This is the soul waiting area", clear: [321, 349, 60, 50], al: [351, 399], pgc: true },
-    { m: "Click this soul", clear: [333, 376, 20, 25], al: [344, 396], cc: true, rwp: true },
+    { m: "Click the space below soul", clear: [333, 376, 20, 25], al: [344, 396], cc: true, rwp: true },
     { m: "Sinful souls give you more misery but they can lie about their sins", clear: [3, 3, -176, -2], at: [0, 0], cpu: true, pgc: true },
     { m: "This gives you more info about this soul", clear: [45, 5, -48, -30], at: [0, 0], cpu: true, pgc: true },
     { m: "Weak souls may perish during torture, so you want sturdy ones", clear: [45, 5, -48, -30], at: [0, 0], cpu: true, pgc: true },
