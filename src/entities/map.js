@@ -6,11 +6,32 @@ import resources from './resources';
 import Soul from './soul';
 import { createPerlinImage } from '../utils/perlin';
 import { wrap } from '../utils/string-utils';
+import { createImage, dimg } from '../utils/image-util';
 
 const bhimg = createPerlinImage(100, [0]);
 const whimg = createPerlinImage(50, [0]);
 const hhimg = createPerlinImage(8, [0, 2], 200, true);
 const fhimg = createPerlinImage(8, [0, 1, 2]);
+const simg = createImage(8, 16, [
+    0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 1, 1, 0, 0, 0,
+    0, 0, 1, 1, 1, 1, 0, 0,
+    0, 0, 1, 1, 2, 1, 0, 0,
+    0, 0, 1, 1, 1, 1, 1, 0,
+    0, 0, 1, 1, 1, 1, 1, 0,
+    0, 0, 1, 1, 1, 1, 1, 0,
+    0, 0, 1, 1, 1, 1, 1, 0,
+    0, 1, 1, 1, 1, 1, 0, 0,
+    0, 1, 1, 1, 1, 1, 0, 0,
+    0, 1, 1, 1, 1, 1, 0, 0,
+    0, 1, 1, 1, 1, 1, 0, 0,
+    0, 0, 1, 1, 1, 1, 0, 0,
+    0, 0, 0, 0, 1, 1, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0
+], [[0, 0, 0, 0], [118, 215, 215, 255], [14, 65, 65, 255]]);
+
+
 class Map {
     constructor(s, h, w) {
         this.s = s; //size

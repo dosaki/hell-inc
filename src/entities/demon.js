@@ -5,7 +5,7 @@ class Demon {
         this.id = id || null;
         this.hr = hueRotation || int(0, 380); // hue rotate
         const na = name || (pick(..."aefgikqrtxz") +
-            pick("'", "", "-") +
+            pick("'", "") +
             pick(..."aeiou") +
             Math.random().toString(36).substring(2, 4).replace(/[0-9]*/g, '') +
             pick(..."aiou"));

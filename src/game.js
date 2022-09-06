@@ -356,7 +356,7 @@ const main = function () {
     }
 
     uiCtx.clearRect(0, 0, cui.width, cui.height);
-    ui.draw(uiCtx);
+    ui.dr(uiCtx);
     lastDate = now;
 
     if (gameLost && gameLost !== wasGameLost) {

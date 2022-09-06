@@ -1,5 +1,6 @@
 import resources from '../entities/resources';
 import { Note } from '../utils/audio-utils';
+import { dimg } from '../utils/image-util';
 
 class Ui {
     constructor() {
@@ -329,7 +330,10 @@ class Ui {
         }
     }
 
-    draw(ctx) {
+    /**
+     * Draw
+     */
+    dr(ctx) {
         this.di(ctx);
         this.dwpu(ctx);
     }
