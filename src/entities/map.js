@@ -182,7 +182,7 @@ class Map {
             }
         }
         if (m.t !== "plane") {
-            this.w.shadow({
+            this.w.sh({
                 n: `sh-b${x}${z}`,
                 x: x - ((Math.sqrt(Math.pow(width, 2) + Math.pow(depth, 2)) / 6) + m.h / 16),
                 y: 0.1,
@@ -198,7 +198,10 @@ class Map {
         this.graph = new Graph(this.map.map(col => col.map(c => !c.o ? 999 : (c.o.n === "Path" ? 1 : 25))));
     }
 
-    doClicks(selectedItem, selectedDemon, x, z, inMapArea, isDragging, startX, startZ, mX, mY, silent) {
+    /**
+     * Do clicks
+     */
+    dc(selectedItem, selectedDemon, x, z, inMapArea, isDragging, startX, startZ, mX, mY, silent) {
         this.w.delete("pl");
         if (!inMapArea) {
             return;
@@ -206,7 +209,7 @@ class Map {
         if (isDragging && selectedItem && selectedItem.t === "plane") {
             for (let j = Math.min(z, startZ); j <= Math.max(z, startZ); j++) {
                 for (let i = Math.min(x, startX); i <= Math.max(x, startX); i++) {
-                    this.doClicks(selectedItem, selectedDemon, i, j, inMapArea, false, 0, 0, 0, 0, true);
+                    this.dc(selectedItem, selectedDemon, i, j, inMapArea, false, 0, 0, 0, 0, true);
                 }
             }
             Note.new("b", 4, 0.1).play(0.5);
@@ -297,10 +300,10 @@ class Map {
                         if (this.map[z][x].o.s && !this.map[z][x].o.s.d) {
                             ctx.drawImage(simg, mX + r(75), mY - r(75), r(35), r(55));
                             ctx.fillStyle = '#fff';
-                            ctx.fillText("Mis", mX + r(110), mY - r(70));
+                            ctx.fillText("💙", mX + r(110), mY - r(70));
                             ctx.fillStyle = '#fff6';
                             ctx.fillRect(mX + r(110), mY - r(65), r(12), r(45));
-                            ctx.fillStyle = '#80f';
+                            ctx.fillStyle = '#25f';
                             ctx.fillRect(mX + r(110), mY - r(65 - (45 - ((this.map[z][x].o.s.m * 45) / this.map[z][x].o.s.md))), r(12), r((this.map[z][x].o.s.m * 45) / this.map[z][x].o.s.md)); //(sin * meterHeight) / maxSin
                             ctx.strokeRect(mX + r(110), mY - r(65), r(12), r(45));
                         }
@@ -334,7 +337,7 @@ class Map {
                             ctx.fillText(`Needs: ${resources.ml[s.rm].n}`, mX + r(35), mY - r(50));
                         }
 
-                        ctx.fillText(`Coins: ${s.c}`, mX + r(35), mY - r(23));
+                        ctx.fillText(`${s.c}`, mX + r(35), mY - r(23));
 
                         ctx.fillStyle = ui.cmi([mX + r(200 - 60), mY - r(40), r(20), r(20)], ui.x, ui.y) ? '#f22' : '#711';
                         ctx.fillRect(mX + r(200 - 60), mY - r(40), r(20), r(20));
@@ -401,11 +404,17 @@ class Map {
         return;
     }
 
-    doRightClicks() {
+    /**
+     * Do right clicks
+     */
+    drc() {
         this.w.delete("pl");
     }
 
-    doHovers(selectedItem, selectedDemon, x, z, inMapArea, isDragging, startX, startZ) {
+    /**
+     * Do hovers
+     */
+    dh(selectedItem, selectedDemon, x, z, inMapArea, isDragging, startX, startZ) {
         if (inMapArea) {
             if (selectedItem && selectedItem.t === "cube") {
                 this.w["cube"]({
@@ -469,7 +478,10 @@ class Map {
     //     this.um.filter(m => m.m.id !== id);
     // }
 
-    drawMap() {
+    /**
+     * Draw map
+     */
+    dm() {
         //top right wall
         this.w.cube({
             g: "map",

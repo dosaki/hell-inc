@@ -29,6 +29,10 @@ class Resources {
     get md() { //maximum destroyed souls
         return Math.floor(10 + 40 * (this.l / 20));
     }
+
+    nd() {
+        this.dl = [new Demon(), new Demon(), new Demon(), new Demon()];
+    }
 }
 let resources = new Resources();
 export default resources;

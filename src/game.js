@@ -3,8 +3,16 @@ import ui from './ui/ui';
 import { int } from './utils/random-utils';
 import { Note } from './utils/audio-utils';
 import resources from './entities/resources';
+
+if(document.monetization){
+    document.monetization.addEventListener('monetizationstart', () => {
+        ui.$ = true;
+    });
+}
+
 const W = window.W;
 const windowSize = Math.min(window.innerWidth, window.innerHeight);
+
 
 W.add("cube", {
     vertices: [
@@ -48,7 +56,7 @@ W.add("plane", {
     ],
 });
 
-W.add("shadow", {
+W.add("sh", {
     vertices: [
         .25, .5, 0,
         -.5, -.5, 0,
@@ -126,16 +134,16 @@ let isTutorial = 0;
 let tutorialSteps = [
     { m: "Welcome to Hell Inc. upper management!", pgc: true },
     { m: "You've been hand-plucked from the demonic masses to manage this hell pit", pgc: true },
-    { m: "We'll be monitoring your misery extraction progress", clear: [125, 1000, 300, 70], al: [208, 1000], pgc: true },
+    { m: "We'll be monitoring your misery (💙) extraction progress", clear: [125, 1000, 300, 70], al: [208, 1000], pgc: true },
     { m: "This is the soul waiting area", clear: [321, 349, 60, 50], al: [351, 399], pgc: true },
     { m: "Click the space below soul", clear: [333, 376, 20, 25], al: [344, 396], cc: true, rwp: true },
-    { m: "Sinful souls give you more misery but they can lie about their sins", clear: [3, 3, -176, -2], at: [0, 0], cpu: true, pgc: true },
+    { m: "Sinful souls give you more 💙 but they can lie about their sins", clear: [3, 3, -176, -2], at: [0, 0], cpu: true, pgc: true },
     { m: "This gives you more info about this soul", clear: [30, 0, -38, -30], at: [0, 0], cpu: true, pgc: true },
     { m: "Weak souls may perish during torture, so you want sturdy ones", clear: [30, 0, -38, -30], at: [0, 0], cpu: true, pgc: true },
     { m: "Souls perish if waiting for too long", pgc: true },
-    { m: "Don't let souls perish without extracting misery!", pgc: true },
+    { m: "Don't let souls perish without extracting 💙!", pgc: true },
     { m: "Click ✔ to accept this soul", clear: [165, 65, -170, -70], at: [0, 0], cpu: true, cc: true },
-    { m: "The soul gave you some coins. You now have 22 coins!", clear: [3, 1000, 110, 70], al: [58, 1000], pgc: true },
+    { m: "The soul gave you some coins (🪙). You now have 22 🪙!", clear: [3, 1000, 110, 70], al: [58, 1000], pgc: true },
     { m: "It has nowhere to go, so it's waiting until there is an available machine", clear: [321, 349, 60, 50], at: [351, 399], pgc: true },
     { m: "Click the Dispair Room", clear: [236, 856, 115, 115], al: [293, 856], cc: true },
     { m: "Then click your pit", clear: [422, 311, 70, 70], at: [457, 381], cc: true },
@@ -143,7 +151,7 @@ let tutorialSteps = [
     { m: "Paths let them travel faster", clear: [10, 856, 115, 115], al: [67, 856], pgc: true },
     { m: "Click your Dispair Room", clear: [422, 311, 70, 70], at: [457, 381], cc: true, rwp: true },
     { m: "This shows if the machine is working and who operates it", clear: [0, 0, 0, 0], at: [0, 0], cpu: true, pgc: true },
-    { m: "When the soul's misery is full you can extract it\nYou may need to wait a bit for the soul to reach the machine", clear: [105, 0, -160, 0], at: [0, 0], cpu: true, pgc: true },
+    { m: "When the soul's 💙 is full you can extract it\nYou may need to wait a bit for the soul to reach the machine", clear: [105, 0, -160, 0], at: [0, 0], cpu: true, pgc: true },
     { m: "Build a Misery Extractor", clear: [120, 856, 115, 115], al: [177, 856], cc: true },
     { m: "Then click your pit", clear: [522, 411, 70, 70], at: [557, 481], cc: true },
     { m: "Now employ a demon for it", clear: [854, 856, 236, 236], ar: [972, 856], cc: true },
@@ -178,8 +186,8 @@ ct.addEventListener("mousemove", (e) => {
         (isTutorial && tutorialSteps[0] && tutorialSteps[0].clear && tutorialSteps[0].cc && ui.cmi(tutorialSteps[0].cpu === true ? tutorialSteps[0].clear.map((value, i) => value + ui.cwp[i]) : tutorialSteps[0].clear, mX, mY));
 
     if (mX && mY && shouldDoHovers) {
-        if (!ui.doHovers(mX, mY, uiCtx.canvas.height)) {
-            map.doHovers(ui.si, ui.sd, wX, wY, ui.ma, isDragging, swX, swY);
+        if (!ui.dh(mX, mY, uiCtx.canvas.height)) {
+            map.dh(ui.si, ui.sd, wX, wY, ui.ma, isDragging, swX, swY);
         }
     }
 });
@@ -197,8 +205,8 @@ ct.addEventListener("click", (e) => {
                 tutorialSteps = tutorialSteps.slice(1);
             }
         }, 2);
-        if (!pgc && !ui.doClicks(mX, mY)) {
-            const r = map.doClicks(ui.si, ui.sd, wX, wY, ui.ma, isDragging, swX, swY, mX, mY);
+        if (!pgc && !ui.dc(mX, mY)) {
+            const r = map.dc(ui.si, ui.sd, wX, wY, ui.ma, isDragging, swX, swY, mX, mY);
             ui.wpu = [];
             ui.cwp = [0, 0, 0, 0];
             if (r && r.popup) {
@@ -227,8 +235,8 @@ ct.oncontextmenu = (e) => {
     ui.wpu = [];
 
     if (mX && mY) {
-        ui.doRightClicks(mX, mY);
-        map.doRightClicks();
+        ui.drc(mX, mY);
+        map.drc();
         Note.new("b", 3, 0.1).play(0.5);
         setTimeout(() => {
             Note.new("b", 3, 0.1).play(0.2);
@@ -239,7 +247,7 @@ ct.oncontextmenu = (e) => {
 window.speed = 1;
 
 setTimeout(() => {
-    map.drawMap(1);
+    map.dm(1);
     W.projection = ortho(45, 1, 999);
     W.camera({ x: 0, y: 32, z: 50, rx: -45, ry: -45 });
 }, 1);
@@ -267,7 +275,7 @@ let gameLost = false;
 let wasGameLost = false;
 let gameLostReason = "";
 const main = function () {
-    gameLostReason = resources.m <= -100 ? "too much misery debt" : (resources.ds > resources.md ? "destroyed too many souls" : (resources.sd > resources.md ? "declined too many souls" : ""));
+    gameLostReason = resources.m <= -100 ? "too much 💙 debt" : (resources.ds > resources.md ? "destroyed too many souls" : (resources.sd > resources.md ? "declined too many souls" : ""));
     gameLost = !!gameLostReason;
     const now = new Date().getTime();
     tutorialCtx.clearRect(0, 0, cui.width, cui.height);
