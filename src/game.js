@@ -4,15 +4,6 @@ import { int } from './utils/random-utils';
 import { Note } from './utils/audio-utils';
 import resources from './entities/resources';
 
-const cameras = [
-    () => W.camera({ x: 0, y: 32, z: 0, rx: -45, ry: -135 }),
-    () => W.camera({ x: 0, y: 32, z: 50, rx: -45, ry: -45 }),
-    () => W.camera({ x: 50, y: 32, z: 50, rx: -45, ry: 45 }),
-    () => W.camera({ x: 50, y: 32, z: 0, rx: -45, ry: 135 }),
-];
-window.cams = cameras;
-window.cc = 1;
-
 if (document.monetization) {
     document.monetization.addEventListener('monetizationstart', () => {
         ui.$ = true;
@@ -64,7 +55,6 @@ W.add("plane", {
         1, 1, 0, 0, 1, 0
     ],
 });
-W.add("bb", W.mdl.plane);
 
 W.add("sh", {
     vertices: [
@@ -120,6 +110,26 @@ const tutorialCtx = ct.getContext('2d');
 menu.style = `width:${windowSize}px;height:${windowSize}px`;
 
 const map = new Map(50, W);
+window.cams = [
+    () => {
+        W.camera({ x: 0, y: 32, z: 0, rx: -45, ry: -135 });
+        map.rs(-135);
+    },
+    () => {
+        W.camera({ x: 0, y: 32, z: 50, rx: -45, ry: -45 });
+        map.rs(-45);
+    },
+    () => {
+        W.camera({ x: 50, y: 32, z: 50, rx: -45, ry: 45 });
+        map.rs(45);
+    },
+    () => {
+        W.camera({ x: 50, y: 32, z: 0, rx: -45, ry: 135 });
+        map.rs(135);
+    },
+];
+window.cc = 1;
+
 let mX = null;
 let mY = null;
 let wX = null;
@@ -135,7 +145,7 @@ let isTutorial = 0;
 let tutorialSteps = [
     { m: "Welcome to Hell Inc. upper management!", pgc: true },
     { m: "You've been hand-plucked from the demonic masses to manage this hell pit", pgc: true },
-    { m: "We'll be monitoring your misery (🌀) extraction progress", clear: [125, 1000, 300, 70], al: [208, 1000], pgc: true },
+    { m: "We'll be monitoring your progress", clear: [125, 1000, 300, 70], al: [208, 1000], pgc: true },
     { m: "This is the soul waiting area", clear: [321, 349, 60, 50], al: [351, 399], pgc: true },
     { m: "Click the space below soul", clear: [333, 376, 20, 25], al: [344, 396], cc: true, rwp: true },
     { m: "Sinful souls give you more 🌀 but they can lie about their sins", clear: [3, 3, -176, -2], at: [0, 0], cpu: true, pgc: true },
@@ -259,7 +269,7 @@ setTimeout(() => {
         0, 0, -2 / 998, 0,
         0, 0, -1000 / (998), 1
     ]);
-    cameras[window.cc]();
+    window.cams[window.cc]();
 }, 1);
 
 let goUp = true;

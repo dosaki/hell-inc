@@ -9,7 +9,7 @@ import { createImage, dimg } from '../utils/image-util';
 
 const bhimg = createImage(100, 100, [0]);
 const whimg = createImage(50, 16, [0]);
-const fhimg = createImage(10, 10, [0, 1, 2]);
+const fhimg = createImage(14, 14, [0, 1, 2]);
 const simg = createImage(8, 16, [
     0, 0, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 1, 1, 0, 0, 0,
@@ -55,6 +55,13 @@ class Map {
     }
 
     /**
+     * Rotate souls
+     */
+    rs(ry) {
+        this.sl.forEach(s => this.w.move({ n: `s-${s.id}`, ry}));
+    }
+
+    /**
      * Pay Demons
      */
     pd() {
@@ -91,7 +98,7 @@ class Map {
             this.is.push(s);
             this.sli++;
 
-            this.w.bb({ n: `s-${s.id}`, x: s.x, y: 1, z: s.z, h: 2, w: 1, t: simg });
+            this.w.plane({ n: `s-${s.id}`, x: s.x, y: 1, z: s.z, h: 2, w: 1, ry: -45, t: simg });
         }
     }
 
