@@ -4,14 +4,12 @@ import { int, pick } from '../utils/random-utils';
 import Demon from './demon';
 import resources from './resources';
 import Soul from './soul';
-import { createPerlinImage } from '../utils/perlin';
 import { wrap } from '../utils/string-utils';
 import { createImage, dimg } from '../utils/image-util';
 
-const bhimg = createPerlinImage(100, [0]);
-const whimg = createPerlinImage(50, [0]);
-const hhimg = createPerlinImage(8, [0, 2], 200, true);
-const fhimg = createPerlinImage(8, [0, 1, 2]);
+const bhimg = createImage(100, 100, [0]);
+const whimg = createImage(50, 16, [0]);
+const fhimg = createImage(10, 10, [0, 1, 2]);
 const simg = createImage(8, 16, [
     0, 0, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 1, 1, 0, 0, 0,
@@ -33,7 +31,7 @@ const simg = createImage(8, 16, [
 
 
 class Map {
-    constructor(s, h, w) {
+    constructor(s, w) {
         this.s = s; //size
         this.m = []; //machines
         this.um = []; //updatable machines
@@ -45,10 +43,9 @@ class Map {
         this.sli = 1; //soul id iterator
         this.w = w; // w lib
         this.mcc = []; // machines with changed colour
-        this.h = h; // max height
 
         this.map = [...new Array(s)].map((_, j) => [...new Array(s)].map((_, i) => {
-            if (j < 4 && [(this.s / 2) + 1, this.s / 2, (this.s / 2) - 1].includes(i)) {
+            if (j < 7 && new Array(7).fill().map((o, n) => ((this.s / 2) - 3) + n).includes(i)) {
                 return { o: true };
             }
             return { o: null };
@@ -94,7 +91,7 @@ class Map {
             this.is.push(s);
             this.sli++;
 
-            this.w.plane({ n: `s-${s.id}`, x: s.x, y: 1, z: s.z, h: 2, w: 1, ry: -45, t: simg });
+            this.w.bb({ n: `s-${s.id}`, x: s.x, y: 1, z: s.z, h: 2, w: 1, t: simg });
         }
     }
 
@@ -292,6 +289,7 @@ class Map {
             }
         }
 
+        // Machine popup
         if (!selectedItem && !selectedDemon) {
             if (this.map[z][x].o !== true && this.map[z][x].o && this.map[z][x].o.n !== "Path") {
                 return {
@@ -321,16 +319,18 @@ class Map {
                         if (this.map[z][x].o.s && !this.map[z][x].o.s.d) {
                             ctx.drawImage(simg, mX + r(75), mY - r(75), r(35), r(55));
                             ctx.fillStyle = '#fff';
-                            ctx.fillText("💙", mX + r(110), mY - r(70));
+                            ctx.fillText("🌀", mX + r(110), mY - r(70));
                             ctx.fillStyle = '#fff6';
-                            ctx.fillRect(mX + r(110), mY - r(65), r(12), r(45));
+                            ctx.fillRect(mX + r(113), mY - r(65), r(12), r(45));
                             ctx.fillStyle = '#25f';
-                            ctx.fillRect(mX + r(110), mY - r(65 - (45 - ((this.map[z][x].o.s.m * 45) / this.map[z][x].o.s.md))), r(12), r((this.map[z][x].o.s.m * 45) / this.map[z][x].o.s.md)); //(sin * meterHeight) / maxSin
-                            ctx.strokeRect(mX + r(110), mY - r(65), r(12), r(45));
+                            ctx.fillRect(mX + r(113), mY - r(65 - (45 - ((this.map[z][x].o.s.m * 45) / this.map[z][x].o.s.md))), r(12), r((this.map[z][x].o.s.m * 45) / this.map[z][x].o.s.md)); //(sin * meterHeight) / maxSin
+                            ctx.strokeRect(mX + r(113), mY - r(65), r(12), r(45));
                         }
                     }
                 };
             }
+
+            // Soul popup
             const s = this.sl.find(s => s.x === x && s.z === z);
             if (s) {
                 return {
@@ -350,7 +350,7 @@ class Map {
                         ctx.fillRect(mX + r(10), mY - r(80 - (60 - ((s.s * 60) / s.md))), r(12), r((s.s * 60) / s.md)); //(sin * meterHeight) / maxSin
                         ctx.strokeRect(mX + r(10), mY - r(80), r(12), r(60));
 
-                        ctx.font = "12px luminari, fantasy";
+                        ctx.font = `${r(12)}px luminari, fantasy`;
                         ctx.fillStyle = '#fff';
                         wrap(ctx, s.desc, r(155)).forEach((t, i) => ctx.fillText(t, mX + r(35), mY - (r(90) - (12 * i))));
 
@@ -358,7 +358,7 @@ class Map {
                             ctx.fillText(`Needs: ${resources.ml[s.rm].n}`, mX + r(35), mY - r(50));
                         }
 
-                        ctx.fillText(`${s.c}`, mX + r(35), mY - r(23));
+                        ctx.fillText(`${s.c}🪙`, mX + r(35), mY - r(23));
 
                         ctx.fillStyle = ui.cmi([mX + r(200 - 60), mY - r(40), r(20), r(20)], ui.x, ui.y) ? '#f22' : '#711';
                         ctx.fillRect(mX + r(200 - 60), mY - r(40), r(20), r(20));
@@ -446,7 +446,7 @@ class Map {
                     d: selectedItem.d,
                     w: selectedItem.w,
                     h: selectedItem.h,
-                    b: this.iao(x, z, selectedItem.w, selectedItem.d) || resources.c < selectedItem.c ? "#ff000044" : "#aaaa0044"
+                    b: this.iao(x, z, selectedItem.w, selectedItem.d) || resources.c < selectedItem.c ? "#ff000088" : "#00aa0088"
                 });
             }
             if (selectedItem && selectedItem.t === "plane") {
@@ -462,8 +462,8 @@ class Map {
                         (isDragging ?
                             resources.c < selectedItem.c * ((Math.floor(x < startX ? startX - x : x - startX) + selectedItem.w) * (Math.floor(z < startZ ? startZ - z : z - startZ) + selectedItem.w)) :
                             resources.c < selectedItem.c) ?
-                        "#ff000044" :
-                        "#aaaa0044"
+                        "#ff000088" :
+                        "#00aa0088"
                 });
             }
             if (!selectedItem) {
@@ -475,7 +475,7 @@ class Map {
                     w: this.scale,
                     d: this.scale,
                     h: 0.1,
-                    b: selectedDemon ? "#000aa" : "#ffffffaa"
+                    b: selectedDemon ? "#00aaaaaa" : "#ffffffaa"
                 });
             }
         }
@@ -484,9 +484,9 @@ class Map {
                 this.mcc.push(this.map[z][x].o);
             }
             if (this.map[z][x].o.do) {
-                this.w.move({ n: `b-${this.map[z][x].o.id}`, b: "ff000044", mix: 0.8 });
+                this.w.move({ n: `b-${this.map[z][x].o.id}`, b: "#f004", mix: 0.8 });
             } else {
-                this.w.move({ n: `b-${this.map[z][x].o.id}`, b: "0f04", mix: 0.8 });
+                this.w.move({ n: `b-${this.map[z][x].o.id}`, b: "#0f04", mix: 0.8 });
             }
         } else {
             this.mcc.forEach(m => this.w.move({ n: `b-${m.id}`, mix: 0 }));
@@ -507,10 +507,10 @@ class Map {
         this.w.cube({
             g: "map",
             x: this.map.length - 1,
-            y: this.h / 2,
+            y: 1,
             z: (this.map.length - 1) / 2,
             w: this.map.length,
-            h: this.h,
+            h: 2,
             d: 1,
             t: whimg,
             ry: -90
@@ -519,10 +519,10 @@ class Map {
         this.w.cube({
             g: "map",
             x: (this.map.length - 1) / 2,
-            y: this.h / 2,
+            y: 1,
             z: 0,
             w: this.map.length,
-            h: this.h,
+            h: 2,
             d: 1,
             t: whimg,
             ry: 0
@@ -563,28 +563,15 @@ class Map {
             rx: -90
         });
 
-        //entrance
-        this.w.cube({
-            g: "map",
-            x: this.map.length / 2,
-            y: 3,
-            z: 0,
-            w: 3,
-            h: 6,
-            d: 1.1,
-            t: hhimg,
-            ry: 0
-        });
-
         //entrance floor
         this.w.cube({
             g: "map",
             x: this.map.length / 2,
             y: 0,
-            z: 2,
-            w: 3,
+            z: 3,
+            w: 7,
             h: 0.05,
-            d: 3,
+            d: 7,
             t: fhimg,
             ry: 0
         });

@@ -4,7 +4,16 @@ import { int } from './utils/random-utils';
 import { Note } from './utils/audio-utils';
 import resources from './entities/resources';
 
-if(document.monetization){
+const cameras = [
+    () => W.camera({ x: 0, y: 32, z: 0, rx: -45, ry: -135 }),
+    () => W.camera({ x: 0, y: 32, z: 50, rx: -45, ry: -45 }),
+    () => W.camera({ x: 50, y: 32, z: 50, rx: -45, ry: 45 }),
+    () => W.camera({ x: 50, y: 32, z: 0, rx: -45, ry: 135 }),
+];
+window.cams = cameras;
+window.cc = 1;
+
+if (document.monetization) {
     document.monetization.addEventListener('monetizationstart', () => {
         ui.$ = true;
     });
@@ -55,6 +64,7 @@ W.add("plane", {
         1, 1, 0, 0, 1, 0
     ],
 });
+W.add("bb", W.mdl.plane);
 
 W.add("sh", {
     vertices: [
@@ -86,15 +96,6 @@ W.add("sh", {
     ],
 });
 
-const ortho = (value, near, far) => {
-    return new DOMMatrix([
-        1 / value, 0, 0, 0,
-        0, 1 / value, 0, 0,
-        0, 0, -2 / (far - near), 0,
-        0, 0, -(far + near) / (far - near), 1
-    ]);
-};
-
 const screenToWorld = (x, y) => W.v.inverse().multiply(W.projection).transformPoint(new DOMPoint(90 * x - 45, 1, 180 * y - 134));
 
 [...document.querySelectorAll('button')].forEach(btn => btn.addEventListener("mouseenter", () => {
@@ -118,7 +119,7 @@ const tutorialCtx = ct.getContext('2d');
 
 menu.style = `width:${windowSize}px;height:${windowSize}px`;
 
-const map = new Map(50, 20, W);
+const map = new Map(50, W);
 let mX = null;
 let mY = null;
 let wX = null;
@@ -134,14 +135,14 @@ let isTutorial = 0;
 let tutorialSteps = [
     { m: "Welcome to Hell Inc. upper management!", pgc: true },
     { m: "You've been hand-plucked from the demonic masses to manage this hell pit", pgc: true },
-    { m: "We'll be monitoring your misery (💙) extraction progress", clear: [125, 1000, 300, 70], al: [208, 1000], pgc: true },
+    { m: "We'll be monitoring your misery (🌀) extraction progress", clear: [125, 1000, 300, 70], al: [208, 1000], pgc: true },
     { m: "This is the soul waiting area", clear: [321, 349, 60, 50], al: [351, 399], pgc: true },
     { m: "Click the space below soul", clear: [333, 376, 20, 25], al: [344, 396], cc: true, rwp: true },
-    { m: "Sinful souls give you more 💙 but they can lie about their sins", clear: [3, 3, -176, -2], at: [0, 0], cpu: true, pgc: true },
+    { m: "Sinful souls give you more 🌀 but they can lie about their sins", clear: [3, 3, -176, -2], at: [0, 0], cpu: true, pgc: true },
     { m: "This gives you more info about this soul", clear: [30, 0, -38, -30], at: [0, 0], cpu: true, pgc: true },
     { m: "Weak souls may perish during torture, so you want sturdy ones", clear: [30, 0, -38, -30], at: [0, 0], cpu: true, pgc: true },
     { m: "Souls perish if waiting for too long", pgc: true },
-    { m: "Don't let souls perish without extracting 💙!", pgc: true },
+    { m: "Don't let souls perish without extracting 🌀!", pgc: true },
     { m: "Click ✔ to accept this soul", clear: [165, 65, -170, -70], at: [0, 0], cpu: true, cc: true },
     { m: "The soul gave you some coins (🪙). You now have 22 🪙!", clear: [3, 1000, 110, 70], al: [58, 1000], pgc: true },
     { m: "It has nowhere to go, so it's waiting until there is an available machine", clear: [321, 349, 60, 50], at: [351, 399], pgc: true },
@@ -149,12 +150,16 @@ let tutorialSteps = [
     { m: "Then click your pit", clear: [422, 311, 70, 70], at: [457, 381], cc: true },
     { m: "The soul will slowly travel to the machine", pgc: true },
     { m: "Paths let them travel faster", clear: [10, 856, 115, 115], al: [67, 856], pgc: true },
+    { m: "You can click and drag to fill an area with paths", pgc: true },
     { m: "Click your Dispair Room", clear: [422, 311, 70, 70], at: [457, 381], cc: true, rwp: true },
     { m: "This shows if the machine is working and who operates it", clear: [0, 0, 0, 0], at: [0, 0], cpu: true, pgc: true },
-    { m: "When the soul's 💙 is full you can extract it\nYou may need to wait a bit for the soul to reach the machine", clear: [105, 0, -160, 0], at: [0, 0], cpu: true, pgc: true },
+    { m: "When the soul's 🌀 is full you can extract it\nYou may need to wait a bit for the soul to reach the machine", clear: [105, 0, -160, 0], at: [0, 0], cpu: true, pgc: true },
     { m: "Build a Misery Extractor", clear: [120, 856, 115, 115], al: [177, 856], cc: true },
     { m: "Then click your pit", clear: [522, 411, 70, 70], at: [557, 481], cc: true },
-    { m: "Now employ a demon for it", clear: [854, 856, 236, 236], ar: [972, 856], cc: true },
+    { m: "This is your available hiring pool", clear: [854, 856, 236, 236], ar: [972, 856], pgc: true },
+    { m: "Each demon can induce a certain 🌀%, a certain 🌀 per cycle", clear: [854, 856, 236, 236], ar: [972, 856], pgc: true },
+    { m: "Their rating (⭐) tells you how good they are at torturing without destroying a soul", clear: [854, 856, 236, 236], ar: [972, 856], pgc: true },
+    { m: "Now employ a demon", clear: [854, 856, 236, 236], ar: [972, 856], cc: true },
     { m: "Then click your Misery Extractor", clear: [522, 411, 70, 70], at: [557, 481], cc: true },
     { m: "That concludes your training. Have a miserable time!", pgc: true }
 ].map(t => {
@@ -248,8 +253,13 @@ window.speed = 1;
 
 setTimeout(() => {
     map.dm(1);
-    W.projection = ortho(45, 1, 999);
-    W.camera({ x: 0, y: 32, z: 50, rx: -45, ry: -45 });
+    W.projection = new DOMMatrix([
+        1 / 45, 0, 0, 0,
+        0, 1 / 45, 0, 0,
+        0, 0, -2 / 998, 0,
+        0, 0, -1000 / (998), 1
+    ]);
+    cameras[window.cc]();
 }, 1);
 
 let goUp = true;
@@ -258,16 +268,6 @@ setInterval(() => {
     goUp = !goUp;
 }, 250);
 
-// // background heartbeat
-// setInterval(() => {
-//     setTimeout(() => {
-//         Note.new("c#", 1, 0.5).play(1);
-//         setTimeout(() => {
-//             Note.new("c#", 0, 1).play(1);
-//         }, 200);
-//     }, 0);
-// }, 5000);
-
 let lastDate = new Date().getTime();
 let machinesLastUpdated = new Date().getTime();
 let spawnSoulAt = new Date().getTime() + int(3500, 15000);
@@ -275,7 +275,7 @@ let gameLost = false;
 let wasGameLost = false;
 let gameLostReason = "";
 const main = function () {
-    gameLostReason = resources.m <= -100 ? "too much 💙 debt" : (resources.ds > resources.md ? "destroyed too many souls" : (resources.sd > resources.md ? "declined too many souls" : ""));
+    gameLostReason = resources.m <= -100 ? "too much 🌀 debt" : (resources.ds > resources.md ? "destroyed too many souls" : (resources.sd > resources.md ? "declined too many souls" : ""));
     gameLost = !!gameLostReason;
     const now = new Date().getTime();
     tutorialCtx.clearRect(0, 0, cui.width, cui.height);

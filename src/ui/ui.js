@@ -1,5 +1,5 @@
 import resources from '../entities/resources';
-import { Note } from '../utils/audio-utils';
+import { isMuted, toggleSound, Note } from '../utils/audio-utils';
 import { dimg } from '../utils/image-util';
 
 class Ui {
@@ -17,6 +17,10 @@ class Ui {
         this.c = 0; // cycle
         this.$ = false; // monetisation enabled?
         this.$btn = {};
+        this.mbtn = {};
+        this.ebtn = {};
+        this.lbtn = {};
+        this.rbtn = {};
     }
 
     r = (size) => {
@@ -91,6 +95,55 @@ class Ui {
     }
 
     /**
+     * Make button
+     */
+    mkbtn(ctx, element, text, dimensions, onClick, iconAdjust = [0, 0], fill = '#311', stroke = '#744', isDisabled = false, hueRotation = 0) {
+        if (typeof fill === 'string') {
+            ctx.fillStyle = fill;
+            ctx.fillRect(...dimensions);
+        } else {
+            ctx.filter = `hue-rotate(${hueRotation}deg)`;
+            ctx.drawImage(fill, ...dimensions);
+            ctx.filter = "none";
+        }
+
+        if (isDisabled) {
+            ctx.fillStyle = '#3338';
+            ctx.fillRect(...dimensions);
+        }
+
+        ctx.strokeStyle = stroke;
+        ctx.strokeRect(...dimensions);
+        ctx.fillStyle = '#fee';
+
+        text && text.split("\n").forEach((n, j) => ctx.fillText(n, dimensions[0] + this.r(2) + iconAdjust[0], dimensions[1] + this.r(18) + iconAdjust[1] + this.r(j * 25)));
+        if (!this.is.map(i => i.item).includes(element)) {
+            this.is.push({
+                item: element,
+                pos: [...dimensions],
+                onHover: () => {
+                    element.ih = true;
+                    if (!element.ps) {
+                        Note.new("c#", 2, 0.05).play();
+                    }
+                    element.ps = true;
+                },
+                onClick: () => {
+                    onClick();
+                    Note.new("f#", 4, 0.05).play(0.5);
+                },
+                onMouseOut: () => {
+                    element.ps = false;
+                }
+            });
+        }
+        if (element.ih && !isDisabled) {
+            ctx.fillStyle = '#faa2';
+            ctx.fillRect(...dimensions);
+        }
+    }
+
+    /**
      * Draw Interface
      * @param {*} ctx 
      */
@@ -103,6 +156,31 @@ class Ui {
         ctx.fillRect(0, canvasSize - this.r(250), canvasSize, this.r(250));
         ctx.strokeRect(0, canvasSize - this.r(250), canvasSize, this.r(250));
 
+        ctx.font = `${this.r(16)}px luminari, fantasy`;
+        this.mkbtn(ctx, this.mbtn, isMuted() ? "🔇" : "🔊",
+            [canvasSize - this.r(35), this.r(10), this.r(25), this.r(25)],
+            () => toggleSound());
+        this.mkbtn(ctx, this.ebtn, "🔙",
+            [this.r(10), this.r(10), this.r(25), this.r(25)],
+            () => location.reload());
+
+        ctx.font = `${this.r(50)}px luminari, fantasy`;
+        this.mkbtn(ctx, this.lbtn, "↩",
+            [this.r(10), canvasSize - this.r(310), this.r(50), this.r(50)],
+            () => {
+                window.cc = (window.cc + 1) % 4;
+                window.cams[window.cc]();
+            },
+            [this.r(2), this.r(25)]);
+        this.mkbtn(ctx, this.rbtn, "↪",
+            [canvasSize - this.r(60), canvasSize - this.r(310), this.r(50), this.r(50)],
+            () => {
+                window.cc = (window.cc - 1) < 0 ? 3 : (window.cc - 1);
+                window.cams[window.cc]();
+            },
+            [this.r(2), this.r(25)]);
+
+        // Balance
         ctx.fillStyle = '#fee';
         ctx.font = `${this.r(16)}px luminari, fantasy`;
         ctx.fillText(`Balance`, this.r(10), canvasSize - this.r(80));
@@ -112,11 +190,11 @@ class Ui {
 
         ctx.fillText(`🪙`, this.r(10), canvasSize - this.r(56));
         ctx.fillText(resources.c, this.r(10), canvasSize - this.r(38));
-
-        ctx.fillText(`💙`, this.r(60), canvasSize - this.r(56));
+        ctx.fillText(`🌀`, this.r(60), canvasSize - this.r(56));
         ctx.fillText(resources.m, this.r(60), canvasSize - this.r(38));
 
 
+        // Soul scoring
         ctx.fillText(`Souls`, this.r(135), canvasSize - this.r(80));
         ctx.moveTo(this.r(135), canvasSize - this.r(76));
         ctx.lineTo(this.r(418), canvasSize - this.r(76));
@@ -147,75 +225,37 @@ class Ui {
 
         // Machine buttons
         resources.ml.forEach((m, i) => {
-            ctx.fillStyle = m.rl > resources.l ? '#211' : '#311';
-            ctx.strokeStyle = m.rl > resources.l ? '#544' : '#744';
-            ctx.fillRect(this.r(15 + (i * 115)), canvasSize - this.r(235), this.r(100), this.r(100));
-            ctx.strokeRect(this.r(15 + (i * 115)), canvasSize - this.r(235), this.r(100), this.r(100));
-
-            ctx.fillStyle = m.rl > resources.l ? '#877' : '#fdd';
             ctx.font = `${this.r(16)}px luminari, fantasy`;
             let n = [m.n];
             const txt = ctx.measureText(m.n);
             if (txt.width > this.r(76)) {
                 n = m.n.split(" ");
             }
-            n.forEach((n, j) => ctx.fillText(n, this.r(27 + (i * 115)), canvasSize - this.r(210) + this.r(j * 25)));
-
-            if (!this.is.map(i => i.item).includes(m)) {
-                this.is.push({
-                    item: m,
-                    pos: [this.r(15 + (i * 115)), canvasSize - this.r(235), this.r(100), this.r(100)],
-                    onHover: () => {
-                        m.ih = true;
-                        if (!m.ps) {
-                            Note.new("c#", 2, 0.05).play();
-                        }
-                        m.ps = true;
-                    },
-                    onClick: () => {
-                        if (m.rl <= resources.l) {
-                            this.si = m;
-                            Note.new("f#", 4, 0.05).play(0.5);
-                        }
-                    },
-                    onMouseOut: () => {
-                        m.ps = false;
+            this.mkbtn(ctx, m, n.join("\n"),
+                [this.r(15 + (i * 115)), canvasSize - this.r(235), this.r(100), this.r(100)],
+                () => {
+                    if (m.rl <= resources.l) {
+                        this.si = m;
                     }
-                });
-            }
+                },
+                [10, 10],
+                '#311',
+                '#744',
+                m.rl > resources.l);
         });
 
         // Demon buttons
         resources.dl.forEach((d, i) => {
-            ctx.strokeStyle = d.mc > resources.m ? '#544' : this.sd === d ? '#ff0' : '#744';
-            ctx.filter = `hue-rotate(${d.hr}deg)`;
-            ctx.drawImage(dimg, canvasSize - this.r(235) + this.r(((i % 2) * 120)), canvasSize - this.r(235) + this.r((Math.floor(i / 2) * 120)), this.r(100), this.r(100));
-            ctx.filter = "none";
-            if (d.mc > resources.m) {
-                ctx.fillStyle = '#3338';
-                ctx.fillRect(canvasSize - this.r(235) + this.r(((i % 2) * 120)), canvasSize - this.r(235) + this.r((Math.floor(i / 2) * 120)), this.r(100), this.r(100));
-            }
-            ctx.strokeRect(canvasSize - this.r(235) + this.r(((i % 2) * 120)), canvasSize - this.r(235) + this.r((Math.floor(i / 2) * 120)), this.r(100), this.r(100));
-            if (!this.is.map(i => i.item).includes(d)) {
-                this.is.push({
-                    item: d,
-                    pos: [canvasSize - this.r(235) + this.r(((i % 2) * 120)), canvasSize - this.r(235) + this.r((Math.floor(i / 2) * 120)), this.r(100), this.r(100)],
-                    onHover: () => {
-                        d.ih = true;
-                        if (!d.ps) {
-                            Note.new("c#", 2, 0.05).play();
-                        }
-                        d.ps = true;
-                    },
-                    onClick: () => {
-                        this.sd = d;
-                        Note.new("f#", 4, 0.05).play(0.5);
-                    },
-                    onMouseOut: () => {
-                        d.ps = false;
-                    }
-                });
-            }
+            this.mkbtn(ctx, d, 0,
+                [canvasSize - this.r(235) + this.r(((i % 2) * 120)), canvasSize - this.r(235) + this.r((Math.floor(i / 2) * 120)), this.r(100), this.r(100)],
+                () => {
+                    this.sd = d;
+                },
+                [0, 0],
+                dimg,
+                this.sd === d ? '#ff0' : '#744',
+                d.mc > resources.m,
+                d.hr);
         });
 
         // Demon picture hover
@@ -228,39 +268,21 @@ class Ui {
             }
         });
 
-        // Refresh button
-        ctx.fillStyle = this.$ ? '#311' : '#211';
-        ctx.strokeStyle = this.$ ? '#744' : '#544';
-        ctx.fillRect(canvasSize - this.r(142.5), canvasSize - this.r(140.5), this.r(35), this.r(35));
-        ctx.strokeRect(canvasSize - this.r(142.5), canvasSize - this.r(140.5), this.r(35), this.r(35));
-
-        ctx.fillStyle = this.$ ? '#fdd' : '#877';
-        ctx.fillText("↻", canvasSize - this.r(125 + 6), canvasSize - this.r(123 - 6));
-
-        if (!this.is.map(i => i.item).includes(this.$btn)) {
-            this.is.push({
-                item: this.$btn,
-                pos: [canvasSize - this.r(142.5), canvasSize - this.r(140.5), this.r(35), this.r(35)],
-                onHover: () => {
-                    this.$btn.ih = true;
-                    if (!this.$btn.ps) {
-                        Note.new("c#", 2, 0.05).play();
-                    }
-                    this.$btn.ps = true;
-                },
-                onClick: () => {
-                    if (this.$) {
-                        this.is = this.is.filter(i => !resources.dl.includes(i.item));
-                        Note.new("f#", 4, 0.05).play(0.5);
-                        resources.c = resources.c - 5;
-                        resources.nd();
-                    }
-                },
-                onMouseOut: () => {
-                    this.$btn.ps = false;
+        // Demon refresh button
+        this.mkbtn(ctx, this.$btn, "↻",
+            [canvasSize - this.r(142.5), canvasSize - this.r(140.5), this.r(35), this.r(35)],
+            () => {
+                if (this.$ && resources.c >= 5) {
+                    this.is = this.is.filter(i => !resources.dl.includes(i.item));
+                    Note.new("f#", 4, 0.05).play(0.5);
+                    resources.c = resources.c - 5;
+                    resources.nd();
                 }
-            });
-        }
+            },
+            [this.r(8), this.r(5)],
+            this.$ ? '#311' : '#211',
+            this.$ ? '#744' : '#544',
+            !this.$);
 
         // Machine hovers
         resources.ml.forEach((m, i) => {
@@ -283,11 +305,11 @@ class Ui {
                 ctx.fillText(`-${m.c} 🪙`, this.x + this.r(10), this.y - this.r(50));
                 ctx.fillStyle = m.rl > resources.l ? '#877' : '#fdd';
                 if (m.mt) {
-                    ctx.fillText(`💙: +${m.mt}`, this.x + this.r(10), this.y - this.r(32));
+                    ctx.fillText(`🌀: +${m.mt}`, this.x + this.r(10), this.y - this.r(32));
                 }
                 if (m.nd) {
                     ctx.font = `${this.r(10)}px luminari, fantasy`;
-                    ctx.fillText("Requires Demon to operate", this.x + this.r(10), this.y - this.r(12));
+                    ctx.fillText("Requires operator", this.x + this.r(10), this.y - this.r(12));
                 }
             }
         });
@@ -304,14 +326,18 @@ class Ui {
                 ctx.font = `${this.r(16)}px luminari, fantasy`;
                 ctx.fillText(d.n, this.x - this.r(190), this.y - this.r(75));
                 ctx.font = `${this.r(14)}px luminari, fantasy`;
-                ctx.fillText(`${Math.floor(d.mb * 100)}% 💙`, this.x - this.r(190), this.y - this.r(50));
-                ctx.fillText(`${Math.floor(d.e * 100)}% 📏`, this.x - this.r(190), this.y - this.r(30));
-                ctx.fillText(`-${d.mc}💙/cycle`, this.x - this.r(190), this.y - this.r(10));
+                ctx.fillText(`${Math.floor(d.mb * 100)}% 🌀`, this.x - this.r(190), this.y - this.r(50));
+                ctx.fillText(new Array(Math.round(d.e * 3.33)).fill().map(i => "⭐").join(""), this.x - this.r(190), this.y - this.r(30));
+                ctx.fillText(`-${d.mc}🌀/cycle`, this.x - this.r(190), this.y - this.r(10));
             }
         });
 
         // Demon refresh button hover
         if (this.$btn.ih) {
+            if (this.$) {
+                ctx.fillStyle = '#faa2';
+                ctx.fillRect(canvasSize - this.r(142.5), canvasSize - this.r(140.5), this.r(35), this.r(35));
+            }
             ctx.fillStyle = this.$ ? '#311' : '#211';
             ctx.strokeStyle = this.$ ? '#744' : '#544';
             ctx.fillRect(this.x - this.r(200), this.y - this.r(100), this.r(200), this.r(100));
