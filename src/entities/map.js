@@ -484,9 +484,9 @@ class Map {
                 this.mcc.push(this.map[z][x].o);
             }
             if (this.map[z][x].o.do) {
-                this.w.move({ n: `b-${this.map[z][x].o.id}`, b: "#f004", mix: 0.8 });
+                this.w.move({ n: `b-${this.map[z][x].o.id}`, b: "#ff000044", mix: 0.8 });
             } else {
-                this.w.move({ n: `b-${this.map[z][x].o.id}`, b: "#0f04", mix: 0.8 });
+                this.w.move({ n: `b-${this.map[z][x].o.id}`, b: "#00ff0044", mix: 0.8 });
             }
         } else {
             this.mcc.forEach(m => this.w.move({ n: `b-${m.id}`, mix: 0 }));
