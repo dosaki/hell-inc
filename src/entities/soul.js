@@ -90,18 +90,17 @@ class Soul {
         }
     }
 
-    get desc() { // honesty description
-        const strengthDescription = this.cod < 7 ? "and strong willed" :
-            this.cod < 15 ? "and sturdy" :
-                this.cod < 25 ? "and sensitive" :
-                    "and very weak";
+    get desc() {
         const honestyDescription = this.h < 3 ? "seem dishonest" :
             this.h < 5 ? "seem a bit dishonest" :
                 this.h < 7 ? "seem honest enough" :
                     "seem honest";
-        return ["They",
-            honestyDescription,
-            strengthDescription].join(" ");
+        const strengthDescription = this.cod < 7 ? "and strong willed" :
+            this.cod < 15 ? "and sturdy" :
+                this.cod < 25 ? "and sensitive" :
+                    "and very weak";
+        return ["They " + honestyDescription,
+            strengthDescription].join("\n");
     }
 }
 

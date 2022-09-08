@@ -30,9 +30,10 @@ fi
 
 cp -r ./libs/* ./app/js
 cp -r ./static/* ./app/
-cat ./static/index.html | sed 's/libs\/w\.js/js\/w.js/g' > ./app/index.tmp.html
-cat ./app/index.tmp.html | tr '\n' ' ' | sed 's/  //g' > ./app/index.html
-rm ./app/index.tmp.html
+cat ./static/index.html | sed 's/libs\/w\.js/js\/w.js/g' > ./app/index.tmp1.html
+cat ./app/index.tmp1.html | tr '\n' ' ' | sed 's/  //g' > ./app/index.tmp2.html
+cat ./app/index.tmp2.html | sed 's/> </></g' > ./app/index.html
+rm ./app/index.tmp*.html
 
 if [[ "${IS_DIST}" == "TRUE" ]]; then
   rm -r ./dist

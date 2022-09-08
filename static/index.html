@@ -10,13 +10,15 @@
         * {
             margin: 0;
             padding: 0;
+            color: #fff;
         }
         html,
         body {
             height: 100%;
             width: 100%;
         }
-        [b] {
+        [b],
+        [m] {
             height: 100%;
             display: flex;
             align-items: center;
@@ -29,28 +31,16 @@
         [c]>*{
             grid-row: 1;
             grid-column: 1;
-            background: transparent;
         }
         [m] {
-            background: #211;
-            color: #fff;
-            display: flex;
             flex-direction: column;
-            align-items: center;
-            justify-content: center;
-        }
-        h1 {
-            margin: 20px;
-            font-size: 2em;
         }
         button {
-            color: #fff;
-            margin: 20px;
             background:#600;
             border: 1px solid #fff;
             width: 120px;
             height: 50px;
-            display: block;
+            margin:20px;
         }
         button:hover {
             background:#933;
@@ -64,11 +54,11 @@
 <body>
     <div b>
         <div c>
-            <div id="menu" m>
+            <div id=menu m>
                 <h1>Hell Inc.</h1>
                 <div>
-                    <button onclick="javascript:window.play(1)">Tutorial</button>
-                    <button onclick="javascript:window.play()">Play</button>
+                    <button id=tt>Tutorial</button>
+                    <button id=pp>Play</button>
                 </div>
             </div>
             <canvas id=cg n></canvas>
@@ -78,6 +68,3 @@
     </div>
     <script src=libs/w.js></script>
     <script src=js/game.js></script>
-</body>
-
-</html>

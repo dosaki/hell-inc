@@ -4,7 +4,6 @@ import { int, pick } from '../utils/random-utils';
 import Demon from './demon';
 import resources from './resources';
 import Soul from './soul';
-import { wrap } from '../utils/string-utils';
 import { createImage, dimg } from '../utils/image-util';
 
 const bhimg = createImage(100, 100, [0]);
@@ -357,9 +356,9 @@ class Map {
                         ctx.fillRect(mX + r(10), mY - r(80 - (60 - ((s.s * 60) / s.md))), r(12), r((s.s * 60) / s.md)); //(sin * meterHeight) / maxSin
                         ctx.strokeRect(mX + r(10), mY - r(80), r(12), r(60));
 
-                        ctx.font = `${r(12)}px luminari, fantasy`;
+                        ctx.font = `${r(14)}px luminari, fantasy`;
                         ctx.fillStyle = '#fff';
-                        wrap(ctx, s.desc, r(155)).forEach((t, i) => ctx.fillText(t, mX + r(35), mY - (r(90) - (12 * i))));
+                        s.desc.split("\n").forEach((t, i) => ctx.fillText(t, mX + r(35), mY - (r(90 - (15 * i)))));
 
                         if (s.rm) {
                             ctx.fillText(`Needs: ${resources.ml[s.rm].n}`, mX + r(35), mY - r(50));

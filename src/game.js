@@ -13,6 +13,8 @@ if (document.monetization) {
 const W = window.W;
 const windowSize = Math.min(window.innerWidth, window.innerHeight);
 
+let zoom = 45;
+
 
 W.add("cube", {
     vertices: [
@@ -86,7 +88,7 @@ W.add("sh", {
     ],
 });
 
-const screenToWorld = (x, y) => W.v.inverse().multiply(W.projection).transformPoint(new DOMPoint(90 * x - 45, 1, 180 * y - 134));
+const screenToWorld = (x, y) => W.v.inverse().multiply(W.projection).transformPoint(new DOMPoint(zoom * 2 * x - zoom, 1, zoom * 4 * y - (((zoom * 3) - 45 * (-1 + zoom / 45)))));
 
 [...document.querySelectorAll('button')].forEach(btn => btn.addEventListener("mouseenter", () => {
     Note.new("c#", 2, 0.05).play();
@@ -110,21 +112,23 @@ const tutorialCtx = ct.getContext('2d');
 menu.style = `width:${windowSize}px;height:${windowSize}px`;
 
 const map = new Map(50, W);
+let cameraX = 0;
+let cameraZ = 0;
 window.cams = [
     () => {
-        W.camera({ x: 0, y: 32, z: 0, rx: -45, ry: -135 });
+        W.camera({ x: 0 + cameraX, y: 32, z: 0 + cameraZ, rx: -45, ry: -135 });
         map.rs(-135);
     },
     () => {
-        W.camera({ x: 0, y: 32, z: 50, rx: -45, ry: -45 });
+        W.camera({ x: 0 + cameraX, y: 32, z: 50 + cameraZ, rx: -45, ry: -45 });
         map.rs(-45);
     },
     () => {
-        W.camera({ x: 50, y: 32, z: 50, rx: -45, ry: 45 });
+        W.camera({ x: 50 + cameraX, y: 32, z: 50 + cameraZ, rx: -45, ry: 45 });
         map.rs(45);
     },
     () => {
-        W.camera({ x: 50, y: 32, z: 0, rx: -45, ry: 135 });
+        W.camera({ x: 50 + cameraX, y: 32, z: 0 + cameraZ, rx: -45, ry: 135 });
         map.rs(135);
     },
 ];
@@ -145,9 +149,8 @@ let isTutorial = 0;
 let tutorialSteps = [
     { m: "Welcome to Hell Inc. upper management!", pgc: true },
     { m: "You've been hand-plucked from the demonic masses to manage this hell pit", pgc: true },
-    { m: "We'll be monitoring your progress", clear: [125, 1000, 300, 70], al: [208, 1000], pgc: true },
     { m: "This is the soul waiting area", clear: [321, 349, 60, 50], al: [351, 399], pgc: true },
-    { m: "Click the space below soul", clear: [333, 376, 20, 25], al: [344, 396], cc: true, rwp: true },
+    { m: "Click the space below a soul", clear: [333, 376, 20, 25], al: [344, 396], cc: true, rwp: true },
     { m: "Sinful souls give you more 🌀 but they can lie about their sins", clear: [3, 3, -176, -2], at: [0, 0], cpu: true, pgc: true },
     { m: "This gives you more info about this soul", clear: [30, 0, -38, -30], at: [0, 0], cpu: true, pgc: true },
     { m: "Weak souls may perish during torture, so you want sturdy ones", clear: [30, 0, -38, -30], at: [0, 0], cpu: true, pgc: true },
@@ -163,7 +166,7 @@ let tutorialSteps = [
     { m: "You can click and drag to fill an area with paths", pgc: true },
     { m: "Click your Dispair Room", clear: [422, 311, 70, 70], at: [457, 381], cc: true, rwp: true },
     { m: "This shows if the machine is working and who operates it", clear: [0, 0, 0, 0], at: [0, 0], cpu: true, pgc: true },
-    { m: "When the soul's 🌀 is full you can extract it\nYou may need to wait a bit for the soul to reach the machine", clear: [105, 0, -160, 0], at: [0, 0], cpu: true, pgc: true },
+    { m: "When the soul's 🌀 is full you can extract it", clear: [105, 0, -160, 0], at: [0, 0], cpu: true, pgc: true },
     { m: "Build a Misery Extractor", clear: [120, 856, 115, 115], al: [177, 856], cc: true },
     { m: "Then click your pit", clear: [522, 411, 70, 70], at: [557, 481], cc: true },
     { m: "This is your available hiring pool", clear: [854, 856, 236, 236], ar: [972, 856], pgc: true },
@@ -171,6 +174,8 @@ let tutorialSteps = [
     { m: "Their rating (⭐) tells you how good they are at torturing without destroying a soul", clear: [854, 856, 236, 236], ar: [972, 856], pgc: true },
     { m: "Now employ a demon", clear: [854, 856, 236, 236], ar: [972, 856], cc: true },
     { m: "Then click your Misery Extractor", clear: [522, 411, 70, 70], at: [557, 481], cc: true },
+    { m: "Use the mousewheel to zoom and WASD to pan", pgc: true },
+    { m: "Your progress is being monitored", clear: [125, 1000, 300, 70], al: [208, 1000], pgc: true },
     { m: "That concludes your training. Have a miserable time!", pgc: true }
 ].map(t => {
     const _t = { ...t };
@@ -183,6 +188,42 @@ let tutorialSteps = [
 });
 
 const uiCtx = cui.getContext('2d');
+window.addEventListener('keydown', (e) => {
+    if (!isTutorial) {
+        if (e.code === "KeyW") {
+            cameraX++;
+            cameraZ--;
+        }
+        if (e.code === "KeyS") {
+            cameraX--;
+            cameraZ++;
+        }
+        if (e.code === "KeyA") {
+            cameraX--;
+            cameraZ--;
+        }
+        if (e.code === "KeyD") {
+            cameraX++;
+            cameraZ++;
+        }
+        window.cams[window.cc]();
+    }
+});
+ct.addEventListener('mousewheel', (e) => {
+    if (!isTutorial) {
+        if (e.deltaY > 0) {
+            zoom = Math.min(85, zoom + 10);
+        } else {
+            zoom = Math.max(5, zoom - 10);
+        }
+        W.projection = new DOMMatrix([
+            1 / zoom, 0, 0, 0,
+            0, 1 / zoom, 0, 0,
+            0, 0, -2 / 998, 0,
+            0, 0, -1000 / (998), 1
+        ]);
+    }
+});
 ct.addEventListener("mousemove", (e) => {
     isDragging = eventType === "mousedown" || (isDragging && eventType === "hover");
     eventType = "hover";
@@ -191,8 +232,8 @@ ct.addEventListener("mousemove", (e) => {
     mY = e.clientY - rect.top;
     if (!W.v) return;
     const { x, z } = screenToWorld(mX / rect.width, mY / rect.height);
-    wX = Math.min(48, Math.max(1, Math.round(x)));
-    wY = Math.min(48, Math.max(1, Math.round(z)));
+    wX = Math.min(48, Math.max(1, Math.floor(x)));
+    wY = Math.min(48, Math.max(1, Math.ceil(z)));
 
     // console.log(mX, mY);
 
@@ -264,8 +305,8 @@ window.speed = 1;
 setTimeout(() => {
     map.dm(1);
     W.projection = new DOMMatrix([
-        1 / 45, 0, 0, 0,
-        0, 1 / 45, 0, 0,
+        1 / zoom, 0, 0, 0,
+        0, 1 / zoom, 0, 0,
         0, 0, -2 / 998, 0,
         0, 0, -1000 / (998), 1
     ]);
@@ -306,18 +347,15 @@ const main = function () {
             }
             tutorialCtx.fillStyle = "#fff";
             tutorialCtx.font = `${ui.r(24, 13)}px luminari, fantasy`;
-            const messages = tutorialSteps[0].m.split("\n");
-            messages.forEach((message, i) => {
-                const messageWidth = tutorialCtx.measureText(message).width;
-                tutorialCtx.fillText(message,
-                    windowSize / 2 - messageWidth / 2,
-                    windowSize / 2 + i * ui.r(25, 14));
-            });
+            const message = tutorialSteps[0].m;
+            const messageWidth = tutorialCtx.measureText(message).width;
+            tutorialCtx.fillText(message,
+                windowSize / 2 - messageWidth / 2,
+                windowSize / 2 + ui.r(25, 14));
             tutorialCtx.strokeStyle = "#fff";
-            const measurement = tutorialCtx.measureText(messages[0]);
             if (tutorialSteps[0].al) {
                 tutorialCtx.beginPath();
-                tutorialCtx.moveTo((windowSize / 2 - measurement.width / 2) - ui.r(10), (windowSize / 2) - ui.r(24) / 2);
+                tutorialCtx.moveTo((windowSize / 2 - messageWidth / 2) - ui.r(10), (windowSize / 2) - ui.r(24) / 2);
                 tutorialCtx.lineTo(tutorialSteps[0].cpu === true ? rect[0] + (rect[2] / 2) + tutorialSteps[0].al[0] : tutorialSteps[0].al[0], (windowSize / 2) - ui.r(24) / 2);
                 tutorialCtx.lineTo(
                     tutorialSteps[0].cpu === true ? rect[0] + (rect[2] / 2) + tutorialSteps[0].al[0] : tutorialSteps[0].al[0],
@@ -334,7 +372,7 @@ const main = function () {
             }
             if (tutorialSteps[0].ar) {
                 tutorialCtx.beginPath();
-                tutorialCtx.moveTo((windowSize / 2 + measurement.width / 2) + ui.r(10), (windowSize / 2) - ui.r(24) / 2);
+                tutorialCtx.moveTo((windowSize / 2 + messageWidth / 2) + ui.r(10), (windowSize / 2) - ui.r(24) / 2);
                 tutorialCtx.lineTo(tutorialSteps[0].cpu === true ? rect[0] + (rect[2] / 2) + tutorialSteps[0].ar[0] : tutorialSteps[0].ar[0], (windowSize / 2) - ui.r(24) / 2);
                 tutorialCtx.lineTo(tutorialSteps[0].ar[0], (windowSize / 2) - ui.r(24) / 2);
                 tutorialCtx.lineTo(
@@ -393,7 +431,7 @@ const main = function () {
     window.requestAnimationFrame(main);
 };
 
-window.play = (tutorialMode) => {
+const play = (tutorialMode) => {
     isTutorial = tutorialMode;
     cui.removeAttribute("n");
     cg.removeAttribute("n");
@@ -402,3 +440,11 @@ window.play = (tutorialMode) => {
     map.ss(isTutorial, 1);
     main();
 };
+
+
+tt.addEventListener("click", (e) => {
+    play(1);
+});
+pp.addEventListener("click", (e) => {
+    play();
+});
