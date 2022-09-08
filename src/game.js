@@ -174,7 +174,7 @@ let tutorialSteps = [
     { m: "Their rating (⭐) tells you how good they are at torturing without destroying a soul", clear: [854, 856, 236, 236], ar: [972, 856], pgc: true },
     { m: "Now employ a demon", clear: [854, 856, 236, 236], ar: [972, 856], cc: true },
     { m: "Then click your Misery Extractor", clear: [522, 411, 70, 70], at: [557, 481], cc: true },
-    { m: "Use the mousewheel to zoom and WASD to pan", pgc: true },
+    { m: "Oh, you can use the mousewheel to zoom and WASD to pan", pgc: true },
     { m: "Your progress is being monitored", clear: [125, 1000, 300, 70], al: [208, 1000], pgc: true },
     { m: "That concludes your training. Have a miserable time!", pgc: true }
 ].map(t => {
@@ -347,16 +347,15 @@ const main = function () {
             }
             tutorialCtx.fillStyle = "#fff";
             tutorialCtx.font = `${ui.r(24, 13)}px luminari, fantasy`;
-            const message = tutorialSteps[0].m;
-            const messageWidth = tutorialCtx.measureText(message).width;
-            tutorialCtx.fillText(message,
+            const messageWidth = tutorialCtx.measureText(tutorialSteps[0].m).width;
+            tutorialCtx.fillText(tutorialSteps[0].m,
                 windowSize / 2 - messageWidth / 2,
-                windowSize / 2 + ui.r(25, 14));
+                windowSize / 2 + ui.r(25)/2);
             tutorialCtx.strokeStyle = "#fff";
             if (tutorialSteps[0].al) {
                 tutorialCtx.beginPath();
-                tutorialCtx.moveTo((windowSize / 2 - messageWidth / 2) - ui.r(10), (windowSize / 2) - ui.r(24) / 2);
-                tutorialCtx.lineTo(tutorialSteps[0].cpu === true ? rect[0] + (rect[2] / 2) + tutorialSteps[0].al[0] : tutorialSteps[0].al[0], (windowSize / 2) - ui.r(24) / 2);
+                tutorialCtx.moveTo((windowSize / 2 - messageWidth / 2) - ui.r(10), (windowSize / 2));
+                tutorialCtx.lineTo(tutorialSteps[0].cpu === true ? rect[0] + (rect[2] / 2) + tutorialSteps[0].al[0] : tutorialSteps[0].al[0], (windowSize / 2));
                 tutorialCtx.lineTo(
                     tutorialSteps[0].cpu === true ? rect[0] + (rect[2] / 2) + tutorialSteps[0].al[0] : tutorialSteps[0].al[0],
                     tutorialSteps[0].cpu === true ? rect[1] + (rect[3] / 2) + tutorialSteps[0].al[1] : tutorialSteps[0].al[1]);
@@ -364,7 +363,7 @@ const main = function () {
             }
             if (tutorialSteps[0].at) {
                 tutorialCtx.beginPath();
-                tutorialCtx.moveTo(tutorialSteps[0].cpu === true ? rect[0] + (rect[2] / 2) + tutorialSteps[0].at[0] : tutorialSteps[0].at[0], (windowSize / 2) - ui.r(24));
+                tutorialCtx.moveTo(tutorialSteps[0].cpu === true ? rect[0] + (rect[2] / 2) + tutorialSteps[0].at[0] : tutorialSteps[0].at[0], (windowSize / 2) - ui.r(25));
                 tutorialCtx.lineTo(
                     tutorialSteps[0].cpu === true ? rect[0] + (rect[2] / 2) + tutorialSteps[0].at[0] : tutorialSteps[0].at[0],
                     tutorialSteps[0].cpu === true ? rect[1] + rect[3] + tutorialSteps[0].at[1] : tutorialSteps[0].at[1]);
@@ -372,9 +371,9 @@ const main = function () {
             }
             if (tutorialSteps[0].ar) {
                 tutorialCtx.beginPath();
-                tutorialCtx.moveTo((windowSize / 2 + messageWidth / 2) + ui.r(10), (windowSize / 2) - ui.r(24) / 2);
-                tutorialCtx.lineTo(tutorialSteps[0].cpu === true ? rect[0] + (rect[2] / 2) + tutorialSteps[0].ar[0] : tutorialSteps[0].ar[0], (windowSize / 2) - ui.r(24) / 2);
-                tutorialCtx.lineTo(tutorialSteps[0].ar[0], (windowSize / 2) - ui.r(24) / 2);
+                tutorialCtx.moveTo((windowSize / 2 + messageWidth / 2) + ui.r(10), (windowSize / 2));
+                tutorialCtx.lineTo(tutorialSteps[0].cpu === true ? rect[0] + (rect[2] / 2) + tutorialSteps[0].ar[0] : tutorialSteps[0].ar[0], (windowSize / 2));
+                tutorialCtx.lineTo(tutorialSteps[0].ar[0], (windowSize / 2));
                 tutorialCtx.lineTo(
                     tutorialSteps[0].cpu === true ? rect[0] + (rect[2] / 2) + tutorialSteps[0].ar[0] : tutorialSteps[0].ar[0],
                     tutorialSteps[0].cpu === true ? rect[1] + (rect[3] / 2) + tutorialSteps[0].ar[1] : tutorialSteps[0].ar[1]);
