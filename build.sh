@@ -26,6 +26,8 @@ if [[ "${IS_DEV_MODE}" == "TRUE" ]]; then
     ./node_modules/webpack/bin/webpack.js --mode development
 else
     ./node_modules/webpack/bin/webpack.js
+    npx roadroller ./app/js/game.js -o ./app/js/game.tmp.js
+    mv ./app/js/game.tmp.js ./app/js/game.js
 fi
 
 cp -r ./libs/* ./app/js
