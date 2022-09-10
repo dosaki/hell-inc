@@ -75,6 +75,7 @@ class Ui {
     drc() {
         this.si = null;
         this.sd = null;
+        this.dm = null;
     }
 
     /**
@@ -255,7 +256,7 @@ class Ui {
             },
             [10, 10],
             '#311',
-            '#744');
+            this.dm ? '#ff0' : '#744');
         
 
         // Demon buttons

@@ -225,15 +225,16 @@ class Map {
     /**
      * Do clicks
      */
-    dc(selectedItem, selectedDemon, x, z, inMapArea, isDragging, startX, startZ, mX, mY, silent) {
+    dc(selectedItem, selectedDemon, isDeleteMode, x, z, inMapArea, isDragging, startX, startZ, mX, mY, silent) {
         this.w.delete("pl");
         if (!inMapArea) {
             return;
         }
-        if (isDragging && selectedItem && selectedItem.t === "plane") {
+
+        if (isDragging && (isDeleteMode || selectedItem && selectedItem.t === "plane")) {
             for (let j = Math.min(z, startZ); j <= Math.max(z, startZ); j++) {
                 for (let i = Math.min(x, startX); i <= Math.max(x, startX); i++) {
-                    this.dc(selectedItem, selectedDemon, i, j, inMapArea, false, 0, 0, 0, 0, true);
+                    this.dc(selectedItem, selectedDemon, isDeleteMode, i, j, inMapArea, false, 0, 0, 0, 0, true);
                 }
             }
             Note.new("b", 4, 0.1).play(0.5);
@@ -245,6 +246,14 @@ class Map {
             }, 70);
             return;
         }
+
+        if (isDeleteMode) {
+            if(this.map[z][x].o){
+                this.rmm(this.map[z][x].o.id);
+            }
+            return;
+        }
+        console.log("passing through")
 
         if (selectedItem && !this.iao(x, z, selectedItem.w, selectedItem.d) && selectedItem.c <= resources.c) {
             if (!silent) {
@@ -350,7 +359,6 @@ class Map {
                                     Note.new("c#", 3, 0.1).play(0.2);
                                 }, 50);
                                 setTimeout(() => {
-                                    resources.c += Math.floor(machine.c / 2);
                                     this.rmm(machine.id);
                                 }, 25);
                                 return { pp: true };
@@ -470,8 +478,21 @@ class Map {
     /**
      * Do hovers
      */
-    dh(selectedItem, selectedDemon, x, z, inMapArea, isDragging, startX, startZ) {
+    dh(selectedItem, selectedDemon, isDeleteMode, x, z, inMapArea, isDragging, startX, startZ) {
         if (inMapArea) {
+            if (isDragging && isDeleteMode) {
+                this.w["cube"]({
+                    n: "pl",
+                    x: ((x < startX ? startX : x) - Math.abs(x - startX) / 2),
+                    y: 0,
+                    z: ((z < startZ ? startZ : z) - Math.abs(z - startZ) / 2),
+                    w: Math.floor(x < startX ? startX - x : x - startX) + 1,
+                    d: Math.floor(z < startZ ? startZ - z : z - startZ) + 1,
+                    h: 0.1,
+                    b: "#99110088"
+                });
+                return;
+            }
             if (selectedItem && selectedItem.t === "cube") {
                 this.w["cube"]({
                     n: "pl",
@@ -534,6 +555,9 @@ class Map {
      */
     rmm(id) {
         const machinePosition = this.m.find(m => m.m.id === id);
+        if(!machinePosition || !machinePosition.m){
+            return;
+        }
         if (machinePosition.m.do) {
             machinePosition.m.do.m = null;
             machinePosition.m.do = null;
@@ -546,6 +570,7 @@ class Map {
                 this.map[j][i].o = null;
             }
         }
+        resources.c += Math.floor(machinePosition.m.c / 2);
         this.w.delete(`sh-b${machinePosition.x}${machinePosition.z}`, 1);
         this.w.delete(`b-${id}`, 1);
         this.m = this.m.filter(m => m.m.id !== id);

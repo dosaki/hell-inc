@@ -88,7 +88,23 @@ W.add("sh", {
     ],
 });
 
-const screenToWorld = (x, y) => W.v.inverse().multiply(W.projection).transformPoint(new DOMPoint(zoom * 2 * x - zoom, 1, zoom * 4 * y - (((zoom * 3) - 45 * (-1 + zoom / 45)))));
+
+const screenToWorld = (x, y) => {
+    const offset = [
+        [-0.75, 1],
+        [0, 0],
+        [1, 1],
+        [0, 2]
+    ];
+    return W.v.inverse()
+        .multiply(W.projection)
+        .transformPoint(new DOMPoint(
+            (zoom * 2 * x - zoom) + offset[window.cc][0],
+            1,
+            zoom * 4 * y - (((zoom * 3) - 45 * (-1 + zoom / 45))) + offset[window.cc][1]
+        ));
+
+};
 
 [...document.querySelectorAll('button')].forEach(btn => btn.addEventListener("mouseenter", () => {
     Note.new("c#", 2, 0.05).play();
@@ -249,7 +265,7 @@ ct.addEventListener("mousemove", (e) => {
 
     if (mX && mY && shouldDoHovers) {
         if (!ui.dh(mX, mY, uiCtx.canvas.height)) {
-            map.dh(ui.si, ui.sd, wX, wY, ui.ma, isDragging, swX, swY);
+            map.dh(ui.si, ui.sd, ui.dm, wX, wY, ui.ma, isDragging, swX, swY);
         }
     }
 });
@@ -260,15 +276,15 @@ ct.addEventListener("click", (e) => {
         (isTutorial && tutorialSteps[0] && !tutorialSteps[0].cc) ||
         (isTutorial && tutorialSteps[0] && tutorialSteps[0].clear && tutorialSteps[0].cc && ui.cmi(tutorialSteps[0].cpu === true ? tutorialSteps[0].clear.map((value, i) => value + ui.cwp[i]) : tutorialSteps[0].clear, mX, mY));
 
-    const pgc = isTutorial && tutorialSteps[0] && tutorialSteps[0].pgc;
+    const passGameClick = isTutorial && tutorialSteps[0] && tutorialSteps[0].pgc;
     if (mX && mY && shouldDoClicks) {
         setTimeout(() => {
             if (isTutorial && tutorialSteps[0] && (!tutorialSteps[0].rwp || tutorialSteps[0].rwp && ui.wpu.length > 0)) {
                 tutorialSteps = tutorialSteps.slice(1);
             }
         }, 2);
-        if (!pgc && !ui.dc(mX, mY)) {
-            const r = map.dc(ui.si, ui.sd, wX, wY, ui.ma, isDragging, swX, swY, mX, mY);
+        if (!passGameClick && !ui.dc(mX, mY)) {
+            const r = map.dc(ui.si, ui.sd, ui.dm, wX, wY, ui.ma, isDragging, swX, swY, mX, mY);
             ui.wpu = [];
             ui.cwp = [0, 0, 0, 0];
             if (r && r.popup) {
