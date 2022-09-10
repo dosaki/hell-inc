@@ -57,7 +57,7 @@ class Map {
      * Rotate souls
      */
     rs(ry) {
-        this.sl.forEach(s => this.w.move({ n: `s-${s.id}`, ry}));
+        this.sl.forEach(s => this.w.move({ n: `s-${s.id}`, ry }));
     }
 
     /**
@@ -297,23 +297,24 @@ class Map {
 
         // Machine popup
         if (!selectedItem && !selectedDemon) {
-            if (this.map[z][x].o !== true && this.map[z][x].o && this.map[z][x].o.n !== "Path") {
+            const machine = this.map[z][x].o;
+            if (machine !== true && machine && machine.n !== "Path") {
                 return {
                     r: (resize) => [mX, mY - resize(110), resize(200), resize(100)],
-                    popup: (ctx, r) => {
+                    popup: (ctx, r, ui) => {
                         ctx.fillStyle = '#311d';
                         ctx.strokeStyle = '#744';
                         ctx.fillRect(mX, mY - r(110), r(200), r(100));
                         ctx.strokeRect(mX, mY - r(110), r(200), r(100));
 
-                        ctx.fillStyle = this.map[z][x].o.nd && !this.map[z][x].o.do ? '#f00' : '#0f0';
+                        ctx.fillStyle = machine.nd && !machine.do ? '#f00' : '#0f0';
                         ctx.font = `${r(16)}px luminari, fantasy`;
                         ctx.fillText("⬤", mX + r(10), mY - r(85));
                         ctx.fillStyle = '#fff';
                         ctx.font = `${r(14)}px luminari, fantasy`;
-                        ctx.fillText(this.map[z][x].o.n, mX + r(30), mY - r(85));
-                        if (this.map[z][x].o.do) {
-                            ctx.filter = `hue-rotate(${this.map[z][x].o.do.hr}deg)`;
+                        ctx.fillText(machine.n, mX + r(30), mY - r(85));
+                        if (machine.do) {
+                            ctx.filter = `hue-rotate(${machine.do.hr}deg)`;
                             ctx.drawImage(dimg, mX + r(10), mY - r(75), r(55), r(55));
                             ctx.filter = "none";
                         } else {
@@ -322,15 +323,43 @@ class Map {
                         }
                         ctx.strokeRect(mX + r(10), mY - r(75), r(55), r(55));
 
-                        if (this.map[z][x].o.s && !this.map[z][x].o.s.d) {
+                        if (machine.s && !machine.s.d) {
                             ctx.drawImage(simg, mX + r(75), mY - r(75), r(35), r(55));
                             ctx.fillStyle = '#fff';
                             ctx.fillText("🌀", mX + r(110), mY - r(70));
                             ctx.fillStyle = '#fff6';
                             ctx.fillRect(mX + r(113), mY - r(65), r(12), r(45));
                             ctx.fillStyle = '#25f';
-                            ctx.fillRect(mX + r(113), mY - r(65 - (45 - ((this.map[z][x].o.s.m * 45) / this.map[z][x].o.s.md))), r(12), r((this.map[z][x].o.s.m * 45) / this.map[z][x].o.s.md)); //(sin * meterHeight) / maxSin
+                            ctx.fillRect(mX + r(113), mY - r(65 - (45 - ((machine.s.m * 45) / machine.s.md))), r(12), r((machine.s.m * 45) / machine.s.md)); //(sin * meterHeight) / maxSin
                             ctx.strokeRect(mX + r(113), mY - r(65), r(12), r(45));
+                        }
+
+                        // Sell building button
+                        ctx.fillStyle = ui.cmi([mX + r(200 - 30), mY - r(40), r(20), r(20)], ui.x, ui.y) ? '#2f2' : '#171';
+                        ctx.fillRect(mX + r(200 - 30), mY - r(40), r(20), r(20));
+                        ctx.fillStyle = '#fff';
+                        ctx.fillText("$", mX + r(200 - 25), mY - r(25));
+                        ctx.strokeRect(mX + r(200 - 30), mY - r(40), r(20), r(20));
+                        const sellbtn = {
+                            t: "m-sell-btn", // type
+                            bt: `b-${machine.id}`, //belongs to
+                            pos: [mX + r(200 - 30), mY - r(40), r(20), r(20)],
+                            onClick: (x, y) => {
+                                Note.new("f#", 3, 0.1).play(0.5);
+                                setTimeout(() => {
+                                    Note.new("c#", 3, 0.1).play(0.2);
+                                }, 50);
+                                setTimeout(() => {
+                                    resources.c += Math.floor(machine.c / 2);
+                                    this.rmm(machine.id);
+                                }, 25);
+                                return { pp: true };
+                            }
+                        };
+                        if (ui.wi.filter(i => i.t === "m-sell-btn").length === 0) {
+                            ui.wi.push(sellbtn);
+                        } else if (ui.wi.filter(i => i.t === "m-sell-btn" && i.bt !== `b-${machine.id}`).length > 0) {
+                            ui.wi = ui.wi.filter(i => i.t !== "m-sell-btn");
                         }
                     }
                 };
@@ -500,10 +529,28 @@ class Map {
         }
     }
 
-    // removeMachine(id) {
-    //     this.m.filter(m => m.m.id !== id);
-    //     this.um.filter(m => m.m.id !== id);
-    // }
+    /**
+     * Remove machine
+     */
+    rmm(id) {
+        const machinePosition = this.m.find(m => m.m.id === id);
+        if (machinePosition.m.do) {
+            machinePosition.m.do.m = null;
+            machinePosition.m.do = null;
+        }
+        if (machinePosition.m.s) {
+            machinePosition.m.s.g = null;
+        }
+        for (let j = machinePosition.z - Math.floor(machinePosition.m.d / 2); j <= machinePosition.z + Math.floor(machinePosition.m.d / 2); j++) {
+            for (let i = machinePosition.x - Math.floor(machinePosition.m.w / 2); i <= machinePosition.x + Math.floor(machinePosition.m.w / 2); i++) {
+                this.map[j][i].o = null;
+            }
+        }
+        this.w.delete(`sh-b${machinePosition.x}${machinePosition.z}`, 1);
+        this.w.delete(`b-${id}`, 1);
+        this.m = this.m.filter(m => m.m.id !== id);
+        this.um = this.um.filter(m => m.m.id !== id);
+    }
 
     /**
      * Draw map

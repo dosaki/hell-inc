@@ -13,7 +13,7 @@ class Demon {
         this.mb = miseryBonus || int(85, 150) * 0.01; // misery bonus
         this.e = expertise || int(50, 150) * 0.01; // expertise (i.e. whether they allow the souls to withstand torture better)
         this.mc = miseryCost || Math.max(1, Math.round(((this.mb * 5 + Math.log(this.mb) * 50)+(this.e * 5 + Math.log(this.e) * 50))/2) + int(-2, 2)); // misery cost
-        this.m = null; // operating that this demon is operating
+        this.m = null; // machine that this demon is operating
     }
 
     clone(id) {

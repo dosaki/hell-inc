@@ -15,12 +15,14 @@ class Ui {
         this.wpu = []; // world pop ups
         this.cwp = [0, 0, 0, 0]; // current world popup
         this.c = 0; // cycle
+        this.dm = false; // delete mode
         this.$ = false; // monetisation enabled?
         this.$btn = {};
         this.mbtn = {};
         this.ebtn = {};
         this.lbtn = {};
         this.rbtn = {};
+        this.dmbtn = {};
     }
 
     r = (size) => {
@@ -168,8 +170,10 @@ class Ui {
         this.mkbtn(ctx, this.lbtn, "↩",
             [this.r(10), canvasSize - this.r(310), this.r(50), this.r(50)],
             () => {
+
                 window.cc = (window.cc + 1) % 4;
                 window.cams[window.cc]();
+                console.log(window.cc)
             },
             [this.r(2), this.r(25)]);
         this.mkbtn(ctx, this.rbtn, "↪",
@@ -243,6 +247,16 @@ class Ui {
                 '#744',
                 m.rl > resources.l);
         });
+
+        this.mkbtn(ctx, this.dmbtn, "Remove",
+            [this.r(15 + (575)), canvasSize - this.r(120), this.r(100), this.r(100)],
+            () => {
+                ui.dm = true;
+            },
+            [10, 10],
+            '#311',
+            '#744');
+        
 
         // Demon buttons
         resources.dl.forEach((d, i) => {

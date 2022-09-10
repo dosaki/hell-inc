@@ -189,22 +189,28 @@ let tutorialSteps = [
 
 const uiCtx = cui.getContext('2d');
 window.addEventListener('keydown', (e) => {
+    const keySet = [
+        ["KeyA", "KeyD", "KeyS", "KeyW"],
+        ["KeyW", "KeyS", "KeyA", "KeyD"],
+        ["KeyD", "KeyA", "KeyW", "KeyS"],
+        ["KeyS", "KeyW", "KeyD", "KeyA"]
+    ];
     if (!isTutorial) {
-        if (e.code === "KeyW") {
-            cameraX++;
-            cameraZ--;
+        if (e.code === keySet[window.cc][0]) {
+            cameraX = cameraX + 1;
+            cameraZ = cameraZ - 1;
         }
-        if (e.code === "KeyS") {
-            cameraX--;
-            cameraZ++;
+        if (e.code === keySet[window.cc][1]) {
+            cameraX = cameraX - 1;
+            cameraZ = cameraZ + 1;
         }
-        if (e.code === "KeyA") {
-            cameraX--;
-            cameraZ--;
+        if (e.code === keySet[window.cc][2]) {
+            cameraX = cameraX - 1;
+            cameraZ = cameraZ - 1;
         }
-        if (e.code === "KeyD") {
-            cameraX++;
-            cameraZ++;
+        if (e.code === keySet[window.cc][3]) {
+            cameraX = cameraX + 1;
+            cameraZ = cameraZ + 1;
         }
         window.cams[window.cc]();
     }
@@ -350,7 +356,7 @@ const main = function () {
             const messageWidth = tutorialCtx.measureText(tutorialSteps[0].m).width;
             tutorialCtx.fillText(tutorialSteps[0].m,
                 windowSize / 2 - messageWidth / 2,
-                windowSize / 2 + ui.r(25)/2);
+                windowSize / 2 + ui.r(25) / 2);
             tutorialCtx.strokeStyle = "#fff";
             if (tutorialSteps[0].al) {
                 tutorialCtx.beginPath();
