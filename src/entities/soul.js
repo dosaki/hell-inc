@@ -2,10 +2,25 @@ import { Note } from '../utils/audio-utils';
 import { int, pick } from '../utils/random-utils';
 import resources from './resources';
 
+const sinList = [
+    "Abandoned their pet",
+    "Blocked anti-climate-change law",
+    "Looks innocent",
+    "Micromanaged their reports",
+    "Sent soldiers to their deaths",
+    "Sins were too horrific to describe",
+    "Sold snake-oil",
+    "Used a newline before {",
+    "Was a dictator",
+    "Was a murderer",
+    "Was a thief",
+    "Was too greedy",
+]
 class Soul {
     constructor(id, x, z) {
         this.id = id;
         this._s = int(0, 10); //sin
+        this.sd = this._s ? sinList[0] : pick(...sinList); // sin description
         this.c = int(0, 5); // coins
         this.m = 0; // misery
         this.cod = int(0, 35); // chance of being destroyed

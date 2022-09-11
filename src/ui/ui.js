@@ -23,6 +23,8 @@ class Ui {
         this.lbtn = {};
         this.rbtn = {};
         this.dmbtn = {};
+        this.clbtn = {};
+        this.mlbtn = {};
     }
 
     r = (size) => {
@@ -198,7 +200,36 @@ class Ui {
         ctx.fillText(`🌀`, this.r(60), canvasSize - this.r(56));
         ctx.fillText(resources.m, this.r(60), canvasSize - this.r(38));
 
+        // Coin loan button
+        ctx.font = `${this.r(10)}px luminari, fantasy`;
+        this.mkbtn(ctx, this.clbtn, "+50",
+            [this.r(32), canvasSize - this.r(70), this.r(25), this.r(16)],
+            () => {
+                if(resources.clv.length < 4){
+                    resources.clv.push(80);
+                    resources.c += 50;
+                }
+            },
+            [0, -8],
+            '#311',
+            '#744');
+        
+        // Misery loan button
+        this.mkbtn(ctx, this.mlbtn, "+100",
+            [this.r(82), canvasSize - this.r(70), this.r(25), this.r(16)],
+            () => {
+                if(this.$ && resources.mlv.length < 4){
+                    resources.mlv.push(150);
+                    resources.m += 100;
+                }
+            },
+            [0, -8],
+            this.$ ? '#311' : '#211',
+            this.$ ? '#744' : '#544',
+            !this.$);
 
+
+        ctx.font = `${this.r(16)}px luminari, fantasy`;
         // Soul scoring
         ctx.fillText(`Souls`, this.r(135), canvasSize - this.r(80));
         ctx.moveTo(this.r(135), canvasSize - this.r(76));
@@ -249,8 +280,9 @@ class Ui {
                 m.rl > resources.l);
         });
 
-        this.mkbtn(ctx, this.dmbtn, "Remove",
-            [this.r(15 + (575)), canvasSize - this.r(120), this.r(100), this.r(100)],
+        // Mass sell button
+        this.mkbtn(ctx, this.dmbtn, "Sell",
+            [this.r(615), canvasSize - this.r(70), this.r(50), this.r(50)],
             () => {
                 ui.dm = true;
             },
@@ -271,16 +303,6 @@ class Ui {
                 this.sd === d ? '#ff0' : '#744',
                 d.mc > resources.m,
                 d.hr);
-        });
-
-        // Demon picture hover
-        resources.dl.forEach((d, i) => {
-            if (d.ih) {
-                if (d.mc <= resources.m) {
-                    ctx.fillStyle = '#faa4';
-                    ctx.fillRect(canvasSize - this.r(235) + this.r(((i % 2) * 120)), canvasSize - this.r(235) + this.r((Math.floor(i / 2) * 120)), this.r(100), this.r(100));
-                }
-            }
         });
 
         // Demon refresh button

@@ -1,8 +1,9 @@
 import Map from './entities/map';
 import ui from './ui/ui';
 import { int } from './utils/random-utils';
-import { Note } from './utils/audio-utils';
+import { isMuted, Note } from './utils/audio-utils';
 import resources from './entities/resources';
+import { music } from './audio/music';
 
 if (document.monetization) {
     document.monetization.addEventListener('monetizationstart', () => {
@@ -165,6 +166,7 @@ let isTutorial = 0;
 let tutorialSteps = [
     { m: "Welcome to Hell Inc. upper management!", pgc: true },
     { m: "You've been hand-plucked from the demonic masses to manage this hell pit", pgc: true },
+    { m: "Let me show you around...", pgc: true },
     { m: "This is the soul waiting area", clear: [321, 349, 60, 50], al: [351, 399], pgc: true },
     { m: "Click the space below a soul", clear: [333, 376, 20, 25], al: [344, 396], cc: true, rwp: true },
     { m: "Sinful souls give you more 🌀 but they can lie about their sins", clear: [3, 3, -176, -2], at: [0, 0], cpu: true, pgc: true },
@@ -182,7 +184,9 @@ let tutorialSteps = [
     { m: "You can click and drag to fill an area with paths", pgc: true },
     { m: "Click your Dispair Room", clear: [422, 311, 70, 70], at: [457, 381], cc: true, rwp: true },
     { m: "This shows if the machine is working and who operates it", clear: [0, 0, 0, 0], at: [0, 0], cpu: true, pgc: true },
-    { m: "When the soul's 🌀 is full you can extract it", clear: [105, 0, -160, 0], at: [0, 0], cpu: true, pgc: true },
+/*TODO*/{ m: "You can sell this machine for 50% of the cost", clear: [0, 0, 0, 0], at: [0, 0], cpu: true, pgc: true },
+/*TODO*/{ m: "You can mass-sell machines (and paths) too", clear: [0, 0, 0, 0], at: [0, 0], cpu: true, pgc: true },
+    { m: "When the soul's 🌀 is full, the soul will look for an Extractor", clear: [105, 0, -160, 0], at: [0, 0], cpu: true, pgc: true },
     { m: "Build a Misery Extractor", clear: [120, 856, 115, 115], al: [177, 856], cc: true },
     { m: "Then click your pit", clear: [522, 411, 70, 70], at: [557, 481], cc: true },
     { m: "This is your available hiring pool", clear: [854, 856, 236, 236], ar: [972, 856], pgc: true },
@@ -192,6 +196,8 @@ let tutorialSteps = [
     { m: "Then click your Misery Extractor", clear: [522, 411, 70, 70], at: [557, 481], cc: true },
     { m: "Oh, you can use the mousewheel to zoom and WASD to pan", pgc: true },
     { m: "Your progress is being monitored", clear: [125, 1000, 300, 70], al: [208, 1000], pgc: true },
+/*TODO*/{ m: "If coins are tight, ask for a loan", clear: [125, 1000, 300, 70], al: [208, 1000], pgc: true },
+/*TODO*/{ m: "You'll pay a little bit back every cycle", clear: [125, 1000, 300, 70], al: [208, 1000], pgc: true },
     { m: "That concludes your training. Have a miserable time!", pgc: true }
 ].map(t => {
     const _t = { ...t };
@@ -291,8 +297,11 @@ ct.addEventListener("click", (e) => {
                 ui.wpu.push(r.popup);
                 ui.cwp = r.r(ui.r);
             }
-            r && r.rsd ? ui.sd = null : "";
-            r && r.rsm ? ui.si = null : "";
+            if(r && r.rs){
+                ui.sd = null;
+                ui.si = null;
+                ui.dm = false;
+            }
         }
         eventType === null;
     }
@@ -347,8 +356,11 @@ let spawnSoulAt = new Date().getTime() + int(3500, 15000);
 let gameLost = false;
 let wasGameLost = false;
 let gameLostReason = "";
-const main = function () {
-    gameLostReason = resources.m <= -100 ? "too much 🌀 debt" : (resources.ds > resources.md ? "destroyed too many souls" : (resources.sd > resources.md ? "declined too many souls" : ""));
+const main = function (t) {
+    if (!isMuted()) {
+        music.play(t);
+    }
+    gameLostReason = resources.m <= -100 ? "too much 🌀 debt" : (resources.ds > resources.md ? "destroyed too many souls" : (resources.sd > resources.md ? "declined too many souls" : (resources.c < -20 ? "lost too many coins" : "")));
     gameLost = !!gameLostReason;
     const now = new Date().getTime();
     tutorialCtx.clearRect(0, 0, cui.width, cui.height);
@@ -406,9 +418,11 @@ const main = function () {
         }
     }
 
+    // Pay demons and loans
     if (!gameLost && ui.c >= 10000) {
         ui.c = 0;
         map.pd();
+        resources.pl();
     }
 
     if (!gameLost && now - machinesLastUpdated >= 1000) {

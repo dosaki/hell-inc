@@ -244,16 +244,15 @@ class Map {
                     Note.new("c#", 2, 0.1).play(0.5);
                 }, 70);
             }, 70);
-            return;
+            return { rs: true };  //remove selections
         }
 
         if (isDeleteMode) {
             if(this.map[z][x].o){
                 this.rmm(this.map[z][x].o.id);
             }
-            return;
+            return { rs: true };  //remove selections
         }
-        console.log("passing through")
 
         if (selectedItem && !this.iao(x, z, selectedItem.w, selectedItem.d) && selectedItem.c <= resources.c) {
             if (!silent) {
@@ -292,7 +291,7 @@ class Map {
                 opts["ry"] = pick(0, 90, 180, 270);
                 this.w["cube"](opts);
             }
-            return { rsm: true };
+            return { rs: true }; //remove selections
         }
 
         if (selectedDemon && this.map[z][x].o && this.map[z][x].o !== true && this.map[z][x].o.t !== "plane" && selectedDemon.mc <= resources.m) {
@@ -300,7 +299,7 @@ class Map {
                 this.map[z][x].o.do = selectedDemon.clone(this.dli);
                 this.dli++;
                 resources.dl = resources.dl.map(d => d === selectedDemon ? new Demon() : d);
-                return { rsd: true };
+                return { rs: true };  //remove selections
             }
         }
 

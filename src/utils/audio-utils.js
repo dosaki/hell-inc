@@ -34,12 +34,13 @@ const play = (frequency, duration, trail, initialVolume, type) => {
 };
 
 const noteFrequencies = {
+    'c': 16.35,
     'c#': 17.32,
-    // 'd#': 19.45,
+    'd#': 19.45,
     'e': 20.60,
     'f#': 23.12,
-    // 'g#': 25.96,
-    // 'a#': 29.14,
+    'g#': 25.96,
+    'a#': 29.14,
     'b': 30.87,
 };
 
@@ -63,4 +64,47 @@ export class Note {
     static new = (note, octave, trail, duration) => {
         return new Note(noteFrequencies[note] * Math.pow(2, octave), trail, duration);
     };
+}
+
+export class Track {
+    constructor(notes, type, tempo, volume, waitBeforeLoop) {
+        this.type = type;
+        this.tempo = tempo || 1;
+        this.volume = volume;
+        this.noteIndex = 0;
+        this.loop = waitBeforeLoop !== null && waitBeforeLoop !== undefined;
+        this.waitBeforeLoop = waitBeforeLoop || 0;
+        this.notes = [...notes, ...new Array(this.waitBeforeLoop).fill(null)];
+        this.lastTime = 0;
+    }
+
+    playNextNote(time, msPerBeat) {
+        if ((time - this.lastTime) >= (msPerBeat * this.tempo)) {
+            if (this.notes[this.noteIndex]) {
+                this.notes[this.noteIndex].play(this.volume, this.type);
+            }
+            this.noteIndex++;
+            if (this.loop && this.noteIndex >= this.notes.length) {
+                this.noteIndex = 0;
+            }
+            this.lastTime = time;
+        }
+    }
+}
+
+export class Music {
+    constructor(tracks, bpm) {
+        this.bpm = bpm;
+        this.tracks = tracks;
+    }
+
+    get msPerBeat() {
+        return 60000 / this.bpm;
+    }
+
+    play(time) {
+        this.tracks.forEach(t => {
+            t.playNextNote(time, this.msPerBeat);
+        });
+    }
 }

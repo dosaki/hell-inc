@@ -20,6 +20,22 @@ class Resources {
             new Machine("Blender", 100, true, 4, 4, createImage(4, 4, [2]), "cube", 1, 1, 5),
             new Machine("Javascript Terminal", 150, false, 5, 5, createImage(2, 2, []), "cube", 1, 1, 2)
         ];
+        this.clv = []; // Coin loan value list
+        this.mlv = []; // Misery loan value list
+    }
+
+    /**
+     * Pay loans
+     */
+    pl() {
+        this.clv = this.clv.map(v => {
+            this.c -= 4;
+            return v - 4;
+        }).filter(v => v > 0);
+        this.mlv = this.mlv.map(v => {
+            this.m -= 8;
+            return v - 8;
+        }).filter(v => v > 0);
     }
 
     get l() { // level
