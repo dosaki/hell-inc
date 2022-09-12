@@ -64,7 +64,6 @@ class Soul {
             return;
         }
         this.mlc = this.om !== this.m ? 0 : this.mlc + 1;
-        // console.log(this.mlc);
         this.d = this.mlc > 30;
         resources.ds += this.d ? 1 : 0;
     }
@@ -88,19 +87,15 @@ class Soul {
      */
     fg(machines) {
         if (new Date().getTime() - this.lg >= 5000) {
-            // console.log("finding goal...");
             if (!this.g && this.m < 10) {
-                // console.log(this.id, "Finding new goal...");
                 this.g = pick(...machines.filter(m => (!m.m.nd || m.m.do) && m.m.t !== "plane" && m.m.n !== "Misery Extractor" && !m.m.s && (!this.rm || this.rm && m.m.n === resources.ml[this.rm].n)));
             }
             if (this.m >= (10 * this._s * 0.5)) {
-                // console.log(this.id, "Finding Extractor...");
                 if (this.g && this.g.m.n !== "Misery Extractor") {
                     this.g.m.s = null;
                 }
                 this.g = pick(...machines.filter(m => (!m.m.nd || m.m.do) && m.m.n === "Misery Extractor" && !m.m.s));
             }
-            // console.log(this.g);
             this.lg = new Date().getTime();
         }
     }

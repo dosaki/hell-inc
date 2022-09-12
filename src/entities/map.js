@@ -91,7 +91,6 @@ class Map {
                 s.h = 4;
                 s.c = 2;
                 s.cod = 0;
-                // console.log(s);
             }
             this.sl.push(s);
             this.is.push(s);
@@ -135,7 +134,6 @@ class Map {
                 }
                 if (s.g && !s.im && s.p.length === 0) {
                     s.p = astar.s(this.graph, this.graph.g[s.z][s.x], this.graph.g[s.g.z][s.g.x]);
-                    // console.log(s.p, this.graph.g[s.z][s.x], this.graph.g[s.g.z][s.g.x]);
                 }
                 if (!s.im && s.p.length > 0) {
                     this.w.move({

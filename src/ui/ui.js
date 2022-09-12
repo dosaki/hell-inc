@@ -176,7 +176,6 @@ class Ui {
 
                 window.cc = (window.cc + 1) % 4;
                 window.cams[window.cc]();
-                console.log(window.cc)
             },
             [this.r(2), this.r(25)]);
         this.mkbtn(ctx, this.rbtn, "↪",

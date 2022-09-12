@@ -184,24 +184,25 @@ let tutorialSteps = [
     { m: "You can click and drag to fill an area with paths", pgc: true },
     { m: "Click your Dispair Room", clear: [422, 311, 70, 70], at: [457, 381], cc: true, rwp: true },
     { m: "This shows if the machine is working and who operates it", clear: [0, 0, 0, 0], at: [0, 0], cpu: true, pgc: true },
-/*TODO*/{ m: "You can sell this machine for 50% of the cost", clear: [0, 0, 0, 0], at: [0, 0], cpu: true, pgc: true },
-/*TODO*/{ m: "You can mass-sell machines (and paths) too", clear: [0, 0, 0, 0], at: [0, 0], cpu: true, pgc: true },
+    { m: "You can sell this machine for 50% of the cost", clear: [165, 65, -160, -70], at: [0, 0], cpu: true, pgc: true },
+    { m: "You can mass-sell machines (and paths) too", clear: [610, 1025, 60, 60], ab: [635, 1025], pgc: true },
     { m: "When the soul's 🌀 is full, the soul will look for an Extractor", clear: [105, 0, -160, 0], at: [0, 0], cpu: true, pgc: true },
     { m: "Build a Misery Extractor", clear: [120, 856, 115, 115], al: [177, 856], cc: true },
     { m: "Then click your pit", clear: [522, 411, 70, 70], at: [557, 481], cc: true },
     { m: "This is your available hiring pool", clear: [854, 856, 236, 236], ar: [972, 856], pgc: true },
     { m: "Each demon can induce a certain 🌀%, a certain 🌀 per cycle", clear: [854, 856, 236, 236], ar: [972, 856], pgc: true },
     { m: "Their rating (⭐) tells you how good they are at torturing without destroying a soul", clear: [854, 856, 236, 236], ar: [972, 856], pgc: true },
+    { m: "Demons cost some 🌀 every cycle", clear: [5, 1074, 160, 20], al: [82, 1074], pgc: true },
     { m: "Now employ a demon", clear: [854, 856, 236, 236], ar: [972, 856], cc: true },
     { m: "Then click your Misery Extractor", clear: [522, 411, 70, 70], at: [557, 481], cc: true },
+    { m: "If coins are tight, ask for a loan", clear: [30, 1030, 30, 20], al: [45, 1030], pgc: true },
+    { m: "You'll pay a little bit back every cycle", pgc: true },
     { m: "Oh, you can use the mousewheel to zoom and WASD to pan", pgc: true },
     { m: "Your progress is being monitored", clear: [125, 1000, 300, 70], al: [208, 1000], pgc: true },
-/*TODO*/{ m: "If coins are tight, ask for a loan", clear: [125, 1000, 300, 70], al: [208, 1000], pgc: true },
-/*TODO*/{ m: "You'll pay a little bit back every cycle", clear: [125, 1000, 300, 70], al: [208, 1000], pgc: true },
     { m: "That concludes your training. Have a miserable time!", pgc: true }
 ].map(t => {
     const _t = { ...t };
-    ["clear", "al", "at", "ar"].forEach(prop => {
+    ["clear", "al", "at", "ar", "ab"].forEach(prop => {
         if (prop in _t) {
             _t[prop] = _t[prop].map(v => ui.r(v));
         }
@@ -262,8 +263,6 @@ ct.addEventListener("mousemove", (e) => {
     const { x, z } = screenToWorld(mX / rect.width, mY / rect.height);
     wX = Math.min(48, Math.max(1, Math.floor(x)));
     wY = Math.min(48, Math.max(1, Math.ceil(z)));
-
-    // console.log(mX, mY);
 
     const shouldDoHovers = !isTutorial ||
         (isTutorial && tutorialSteps[0] && !tutorialSteps[0].cc) ||
@@ -395,14 +394,6 @@ const main = function (t) {
                     tutorialSteps[0].cpu === true ? rect[1] + (rect[3] / 2) + tutorialSteps[0].al[1] : tutorialSteps[0].al[1]);
                 tutorialCtx.stroke();
             }
-            if (tutorialSteps[0].at) {
-                tutorialCtx.beginPath();
-                tutorialCtx.moveTo(tutorialSteps[0].cpu === true ? rect[0] + (rect[2] / 2) + tutorialSteps[0].at[0] : tutorialSteps[0].at[0], (windowSize / 2) - ui.r(25));
-                tutorialCtx.lineTo(
-                    tutorialSteps[0].cpu === true ? rect[0] + (rect[2] / 2) + tutorialSteps[0].at[0] : tutorialSteps[0].at[0],
-                    tutorialSteps[0].cpu === true ? rect[1] + rect[3] + tutorialSteps[0].at[1] : tutorialSteps[0].at[1]);
-                tutorialCtx.stroke();
-            }
             if (tutorialSteps[0].ar) {
                 tutorialCtx.beginPath();
                 tutorialCtx.moveTo((windowSize / 2 + messageWidth / 2) + ui.r(10), (windowSize / 2));
@@ -411,6 +402,22 @@ const main = function (t) {
                 tutorialCtx.lineTo(
                     tutorialSteps[0].cpu === true ? rect[0] + (rect[2] / 2) + tutorialSteps[0].ar[0] : tutorialSteps[0].ar[0],
                     tutorialSteps[0].cpu === true ? rect[1] + (rect[3] / 2) + tutorialSteps[0].ar[1] : tutorialSteps[0].ar[1]);
+                tutorialCtx.stroke();
+            }
+            if (tutorialSteps[0].at) {
+                tutorialCtx.beginPath();
+                tutorialCtx.moveTo(tutorialSteps[0].cpu === true ? rect[0] + (rect[2] / 2) + tutorialSteps[0].at[0] : tutorialSteps[0].at[0], (windowSize / 2) - ui.r(25));
+                tutorialCtx.lineTo(
+                    tutorialSteps[0].cpu === true ? rect[0] + (rect[2] / 2) + tutorialSteps[0].at[0] : tutorialSteps[0].at[0],
+                    tutorialSteps[0].cpu === true ? rect[1] + rect[3] + tutorialSteps[0].at[1] : tutorialSteps[0].at[1]);
+                tutorialCtx.stroke();
+            }
+            if (tutorialSteps[0].ab) {
+                tutorialCtx.beginPath();
+                tutorialCtx.moveTo(tutorialSteps[0].cpu === true ? rect[0] + (rect[2] / 2) + tutorialSteps[0].ab[0] : tutorialSteps[0].ab[0], (windowSize / 2) + ui.r(25));
+                tutorialCtx.lineTo(
+                    tutorialSteps[0].cpu === true ? rect[0] + (rect[2] / 2) + tutorialSteps[0].ab[0] : tutorialSteps[0].ab[0],
+                    tutorialSteps[0].cpu === true ? rect[1] + rect[3] + tutorialSteps[0].ab[1] : tutorialSteps[0].ab[1]);
                 tutorialCtx.stroke();
             }
         } else {
