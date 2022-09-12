@@ -41,7 +41,7 @@ const accompaniamentTracks = [
         null,
         null,
         Note.new('d#', 4, 5)
-    ], "sine", 2, 0.05, 11),
+    ], "sine", 2, 0.02, 11),
     new Track([
         null,
         null,
@@ -88,7 +88,7 @@ const accompaniamentTracks = [
         Note.new('c#', 3, 4),
         null,
         Note.new('d#', 3, 4)
-    ], "sine", 2, 0.1, 33),
+    ], "sine", 2, 0.05, 33),
     new Track([
         null,
         null,
@@ -217,7 +217,7 @@ const melodyTrack = new Track([
     Note.new('c#', 6, 4),
     null,
     Note.new('d#', 6, 4)
-], "sine", 2, 0.2, 33);
+], "sine", 2, 0.01, 33);
 
 export const music = new Music(
     [melodyTrack, heartBeatTrack, ...accompaniamentTracks],
