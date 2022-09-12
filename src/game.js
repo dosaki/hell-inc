@@ -356,7 +356,7 @@ let gameLost = false;
 let wasGameLost = false;
 let gameLostReason = "";
 const main = function (t) {
-    if (!isMuted()) {
+    if (!isTutorial && !isMuted()) {
         music.play(t);
     }
     gameLostReason = resources.m <= -100 ? "too much 🌀 debt" : (resources.ds > resources.md ? "destroyed too many souls" : (resources.sd > resources.md ? "declined too many souls" : (resources.c < -20 ? "lost too many coins" : "")));
