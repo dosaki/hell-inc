@@ -1,4 +1,4 @@
-resource "aws_route53_record" "docs-url" {
+resource "aws_route53_record" "url" {
   zone_id = var.domain_hosted_zone_id
   name    = var.domain_name
   type    = "A"
