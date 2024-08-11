@@ -4,3 +4,6 @@ node_modules
 coverage
 publish.sh
 gifs
+terraform/.terraform.lock.hcl
+terraform/.terraform
+.idea

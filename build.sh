@@ -50,8 +50,10 @@ if [[ "${IS_DIST}" == "TRUE" ]]; then
   size_diff=$((size - 13312))
   if [[ ${size_diff} -gt 0 ]]; then
     echo -e "\033[93m\033[1m[WARNING] TOO BIG! File size is ${size} (${size_diff} over).\033[39m"
+    exit 1
   else
   size_left=$((size_diff*-1))
     echo -e "\033[92m\033[1m[SUCCESS] File size under 13k: ${size} (${size_left} left).\033[39m"
+    exit 0
   fi
 fi
